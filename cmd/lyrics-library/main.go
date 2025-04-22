@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -13,13 +14,14 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 
-	"lyrics-library/internal/client/lyricsovh"
-	"lyrics-library/internal/client/yandex"
+	"lyrics-library/internal/client/http/lyricsovh"
+	"lyrics-library/internal/client/http/yandex"
 	"lyrics-library/internal/config"
 	del "lyrics-library/internal/http-server/handler/lyrics/delete"
 	"lyrics-library/internal/http-server/handler/lyrics/get"
 	"lyrics-library/internal/http-server/handler/lyrics/save"
-	healthchecker "lyrics-library/internal/http-server/middleware/health-checker"
+	healthChecker "lyrics-library/internal/http-server/middleware/health-checker"
+	mwLogger "lyrics-library/internal/http-server/middleware/logger"
 	"lyrics-library/internal/lib/logger/sl"
 	"lyrics-library/internal/lib/logger/slogpretty"
 	"lyrics-library/internal/service/track"
@@ -66,7 +68,7 @@ func main() {
 	}
 
 	lyricsClient := lyricsovh.New(log)
-	translateClient := yandex.New(log, cfg.YandexTranslatorAPI.Key)
+	translateClient := yandex.New(log, cfg.YandexTranslatorKey)
 
 	trackService := track.New(
 		log,
@@ -80,7 +82,8 @@ func main() {
 
 	router.Use(middleware.Recoverer)
 	router.Use(middleware.URLFormat)
-	router.Use(healthchecker.New(log, storage))
+	router.Use(healthChecker.New(log, storage))
+	router.Use(mwLogger.New(log))
 
 	router.Route("/lyrics", func(r chi.Router) {
 		r.Post("/", save.New(ctx, log, trackService))
@@ -89,7 +92,7 @@ func main() {
 	})
 
 	srv := &http.Server{
-		Addr:         cfg.HTTPServer.Address,
+		Addr:         serverAddress(cfg),
 		Handler:      router,
 		ReadTimeout:  cfg.HTTPServer.Timeout,
 		WriteTimeout: cfg.HTTPServer.Timeout,
@@ -98,16 +101,16 @@ func main() {
 
 	serverErr := make(chan error, 1)
 	go func() {
-		log.Info("starting server", slog.String("address", cfg.HTTPServer.Address))
+		log.Info("starting server", slog.String("address", serverAddress(cfg)))
 
-		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			serverErr <- err
 		}
 	}()
 
 	select {
 	case <-ctx.Done():
-		log.Info("shutdown signal recieved")
+		log.Info("shutdown signal received")
 	case err := <-serverErr:
 		log.Error("server error", sl.Err(err))
 		cancel()
@@ -158,11 +161,15 @@ func setupPrettyLogger() *slog.Logger {
 	return slog.New(handler)
 }
 
+func serverAddress(cfg *config.Config) string {
+	return fmt.Sprintf("%s:%s", cfg.HTTPServer.Address, cfg.HTTPServer.Port)
+}
+
 func connURL(cfg *config.Config) string {
 	return fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable",
-		cfg.DB.User, cfg.DB.Password, cfg.DB.Host, cfg.DB.Port, cfg.DB.Name)
+		cfg.DB.User, cfg.DB.Password, cfg.DB.Host, cfg.DB.DockerPort, cfg.DB.Name)
 }
 
 func redisHost(cfg *config.Config) string {
-	return fmt.Sprintf("%s:%s", cfg.Redis.Host, cfg.Redis.Port)
+	return fmt.Sprintf("%s:%s", cfg.Redis.Host, cfg.Redis.DockerPort)
 }

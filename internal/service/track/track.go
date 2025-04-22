@@ -20,7 +20,7 @@ type LyricsTranslator interface {
 	TranslateLyrics(ctx context.Context, lyrics []string) ([]string, error)
 }
 
-type TrackStorage interface {
+type TrackManager interface {
 	SaveTrack(ctx context.Context, track *models.Track) error
 	Track(ctx context.Context, artist, title string) (*models.Track, error)
 	TracksByArtist(ctx context.Context, artist string) ([]*models.Track, error)
@@ -46,7 +46,7 @@ type TrackService struct {
 	log              *slog.Logger
 	lyricsProvider   LyricsProvider
 	lyricsTranslator LyricsTranslator
-	trackStorage     TrackStorage
+	trackManager     TrackManager
 	trackCache       TrackCache
 }
 
@@ -54,14 +54,14 @@ func New(
 	log *slog.Logger,
 	lyricsProvider LyricsProvider,
 	lyricsTranslator LyricsTranslator,
-	trackStorage TrackStorage,
+	trackManager TrackManager,
 	trackCache TrackCache,
 ) *TrackService {
 	return &TrackService{
 		log:              log,
 		lyricsProvider:   lyricsProvider,
 		lyricsTranslator: lyricsTranslator,
-		trackStorage:     trackStorage,
+		trackManager:     trackManager,
 		trackCache:       trackCache,
 	}
 }
@@ -117,7 +117,7 @@ func (s *TrackService) Save(
 		Translation: translation,
 	}
 
-	if err := s.trackStorage.SaveTrack(ctx, track); err != nil {
+	if err := s.trackManager.SaveTrack(ctx, track); err != nil {
 		log.Error("failed to save track", sl.Err(err))
 
 		return nil, fmt.Errorf("%s: %w", op, err)
@@ -153,7 +153,7 @@ func (s *TrackService) Track(
 		return cached, nil
 	}
 
-	track, err := s.trackStorage.Track(ctx, artist, title)
+	track, err := s.trackManager.Track(ctx, artist, title)
 	if err != nil {
 		log.Error("failed to get track", sl.Err(err))
 
@@ -189,7 +189,7 @@ func (s *TrackService) ArtistTracks(ctx context.Context, artist string) ([]*mode
 		return cached, nil
 	}
 
-	tracks, err := s.trackStorage.TracksByArtist(ctx, artist)
+	tracks, err := s.trackManager.TracksByArtist(ctx, artist)
 	if err != nil {
 		if errors.Is(err, storage.ErrArtistTracksNotFound) {
 			log.Error("artist's track not found")
@@ -222,7 +222,7 @@ func (s *TrackService) Delete(ctx context.Context, uuid string) error {
 
 	log.Info("deleting track by uuid")
 
-	if err := s.trackStorage.DeleteTrack(ctx, uuid); err != nil {
+	if err := s.trackManager.DeleteTrack(ctx, uuid); err != nil {
 		if errors.Is(err, storage.ErrInvalidUUID) {
 			log.Error("invalid uuid")
 

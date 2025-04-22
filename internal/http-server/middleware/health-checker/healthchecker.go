@@ -26,7 +26,7 @@ func New(
 			defer cancel()
 
 			if err := pgClient.Ping(ctx); err != nil {
-				log.Error("PostgreSQL health check failed", sl.Err(err))
+				log.Error("postgres health check failed", sl.Err(err))
 
 				w.WriteHeader(http.StatusInternalServerError)
 

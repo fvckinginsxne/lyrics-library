@@ -9,35 +9,34 @@ import (
 )
 
 type Config struct {
-	Env                 string              `env:"APP_ENV" env-default:"local"`
-	HTTPServer          HTTPServerConfig    `env-prefix:"SERVER_"`
-	DB                  DBConfig            `env-prefix:"DB_"`
-	Redis               RedisConfig         `env-prefix:"REDIS_"`
-	YandexTranslatorAPI TranslatorAPIConfig `env-prefix:"TRANSLATOR_API_"`
+	Env                 string           `env:"APP_ENV" env-default:"local"`
+	HTTPServer          HTTPServerConfig `env-prefix:"SERVER_"`
+	DB                  DBConfig         `env-prefix:"DB_"`
+	Redis               RedisConfig      `env-prefix:"REDIS_"`
+	YandexTranslatorKey string           `env:"TRANSLATOR_API_KEY" env-required:"true"`
 }
 
 type HTTPServerConfig struct {
-	Address     string        `env:"ADDRESS" env-required:"true"`
+	Address     string        `env:"HOST" env-required:"true"`
+	Port        string        `env:"PORT" env-default:"8080"`
 	Timeout     time.Duration `env:"TIMEOUT" env-default:"4s"`
 	IdleTimeout time.Duration `env:"IDLE_TIMEOUT" env-default:"60s"`
 }
 
 type DBConfig struct {
-	Host     string `env:"HOST" env-default:"localhost"`
-	Port     string `env:"PORT" env-default:"5432"`
-	User     string `env:"USER" env-required:"true"`
-	Password string `env:"PASSWORD" env-required:"true"`
-	Name     string `env:"NAME" env-required:"true"`
+	Host       string `env:"HOST" env-default:"localhost"`
+	Port       string `env:"PORT" env-default:"5432"`
+	DockerPort string `env:"DOCKER_PORT" env-default:"5432"`
+	User       string `env:"USER" env-required:"true"`
+	Password   string `env:"PASSWORD" env-required:"true"`
+	Name       string `env:"NAME" env-required:"true"`
 }
 
 type RedisConfig struct {
-	Host     string `env:"HOST" env-default:"localhost"`
-	Port     string `env:"PORT" env-default:"6379"`
-	Password string `env:"PASSWORD" env-required:"true"`
-}
-
-type TranslatorAPIConfig struct {
-	Key string `env:"KEY" env-required:"true"`
+	Host       string `env:"HOST" env-default:"localhost"`
+	Port       string `env:"PORT" env-default:"6379"`
+	DockerPort string `env:"DOCKER_PORT" env-default:"6379"`
+	Password   string `env:"PASSWORD" env-required:"true"`
 }
 
 // MustLoad Load config file and panic if errors occurs
@@ -64,9 +63,7 @@ func fetchConfigPath() string {
 	var res string
 
 	flag.StringVar(&res, "config", "", "path to config file")
-	if err := flag.CommandLine.Parse(os.Args[1:2]); err != nil {
-		panic(err)
-	}
+	flag.Parse()
 
 	if res == "" {
 		res = os.Getenv("CONFIG_PATH")
