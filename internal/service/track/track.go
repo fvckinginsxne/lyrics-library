@@ -20,14 +20,14 @@ type LyricsTranslator interface {
 	TranslateLyrics(ctx context.Context, lyrics []string) ([]string, error)
 }
 
-type TrackManager interface {
+type Storage interface {
 	SaveTrack(ctx context.Context, track *models.Track) error
 	Track(ctx context.Context, artist, title string) (*models.Track, error)
 	TracksByArtist(ctx context.Context, artist string) ([]*models.Track, error)
 	DeleteTrack(ctx context.Context, uuid string) error
 }
 
-type TrackCache interface {
+type Cache interface {
 	SaveArtistTracks(ctx context.Context, artist string, tracks []*models.Track) error
 	ArtistTracks(ctx context.Context, artist string) ([]*models.Track, error)
 	Track(ctx context.Context, artist, title string) (*models.Track, error)
@@ -42,31 +42,31 @@ var (
 	ErrInvalidUUID           = errors.New("invalid uuid")
 )
 
-type TrackService struct {
+type Service struct {
 	log              *slog.Logger
 	lyricsProvider   LyricsProvider
 	lyricsTranslator LyricsTranslator
-	trackManager     TrackManager
-	trackCache       TrackCache
+	storage          Storage
+	cache            Cache
 }
 
 func New(
 	log *slog.Logger,
 	lyricsProvider LyricsProvider,
 	lyricsTranslator LyricsTranslator,
-	trackManager TrackManager,
-	trackCache TrackCache,
-) *TrackService {
-	return &TrackService{
+	storage Storage,
+	cache Cache,
+) *Service {
+	return &Service{
 		log:              log,
 		lyricsProvider:   lyricsProvider,
 		lyricsTranslator: lyricsTranslator,
-		trackManager:     trackManager,
-		trackCache:       trackCache,
+		storage:          storage,
+		cache:            cache,
 	}
 }
 
-func (s *TrackService) Save(
+func (s *Service) Save(
 	ctx context.Context,
 	artist, title string,
 ) (*models.Track, error) {
@@ -76,9 +76,9 @@ func (s *TrackService) Save(
 
 	log.Info("saving track")
 
-	cached, err := s.trackCache.Track(ctx, artist, title)
+	cached, err := s.cache.Track(ctx, artist, title)
 	if err == nil {
-		log.Info("returnig cached track")
+		log.Info("returning cached track")
 
 		return cached, nil
 	}
@@ -117,7 +117,7 @@ func (s *TrackService) Save(
 		Translation: translation,
 	}
 
-	if err := s.trackManager.SaveTrack(ctx, track); err != nil {
+	if err := s.storage.SaveTrack(ctx, track); err != nil {
 		log.Error("failed to save track", sl.Err(err))
 
 		return nil, fmt.Errorf("%s: %w", op, err)
@@ -126,7 +126,7 @@ func (s *TrackService) Save(
 	go func() {
 		log.Info("saving track in cache")
 
-		if err := s.trackCache.SaveTrack(ctx, track); err != nil {
+		if err := s.cache.SaveTrack(ctx, track); err != nil {
 			log.Error("failed to cache track", sl.Err(err))
 		}
 	}()
@@ -136,7 +136,7 @@ func (s *TrackService) Save(
 	return track, nil
 }
 
-func (s *TrackService) Track(
+func (s *Service) Track(
 	ctx context.Context,
 	artist, title string,
 ) (*models.Track, error) {
@@ -146,14 +146,14 @@ func (s *TrackService) Track(
 
 	log.Info("getting track")
 
-	cached, err := s.trackCache.Track(ctx, artist, title)
+	cached, err := s.cache.Track(ctx, artist, title)
 	if err == nil {
 		log.Info("returnig cached track")
 
 		return cached, nil
 	}
 
-	track, err := s.trackManager.Track(ctx, artist, title)
+	track, err := s.storage.Track(ctx, artist, title)
 	if err != nil {
 		log.Error("failed to get track", sl.Err(err))
 
@@ -167,7 +167,7 @@ func (s *TrackService) Track(
 	go func() {
 		log.Info("caching track")
 
-		if err := s.trackCache.SaveTrack(ctx, track); err != nil {
+		if err := s.cache.SaveTrack(ctx, track); err != nil {
 			log.Error("failed to cache track", sl.Err(err))
 		}
 	}()
@@ -177,19 +177,19 @@ func (s *TrackService) Track(
 	return track, nil
 }
 
-func (s *TrackService) ArtistTracks(ctx context.Context, artist string) ([]*models.Track, error) {
+func (s *Service) ArtistTracks(ctx context.Context, artist string) ([]*models.Track, error) {
 	const op = "service.track.ArtistTracks"
 
 	log := s.log.With(slog.String("op", op))
 
-	cached, err := s.trackCache.ArtistTracks(ctx, artist)
+	cached, err := s.cache.ArtistTracks(ctx, artist)
 	if err == nil {
 		log.Info("getting tracks from cache")
 
 		return cached, nil
 	}
 
-	tracks, err := s.trackManager.TracksByArtist(ctx, artist)
+	tracks, err := s.storage.TracksByArtist(ctx, artist)
 	if err != nil {
 		if errors.Is(err, storage.ErrArtistTracksNotFound) {
 			log.Error("artist's track not found")
@@ -205,7 +205,7 @@ func (s *TrackService) ArtistTracks(ctx context.Context, artist string) ([]*mode
 	go func() {
 		log.Info("caching artist's tracks")
 
-		if err := s.trackCache.SaveArtistTracks(ctx, artist, tracks); err != nil {
+		if err := s.cache.SaveArtistTracks(ctx, artist, tracks); err != nil {
 			log.Error("failed to cache artist tracks", sl.Err(err))
 		}
 	}()
@@ -215,14 +215,14 @@ func (s *TrackService) ArtistTracks(ctx context.Context, artist string) ([]*mode
 	return tracks, nil
 }
 
-func (s *TrackService) Delete(ctx context.Context, uuid string) error {
+func (s *Service) Delete(ctx context.Context, uuid string) error {
 	const op = "service.track.Delete"
 
 	log := s.log.With(slog.String("op", op))
 
 	log.Info("deleting track by uuid")
 
-	if err := s.trackManager.DeleteTrack(ctx, uuid); err != nil {
+	if err := s.storage.DeleteTrack(ctx, uuid); err != nil {
 		if errors.Is(err, storage.ErrInvalidUUID) {
 			log.Error("invalid uuid")
 
