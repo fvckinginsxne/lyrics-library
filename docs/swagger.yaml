@@ -1,0 +1,145 @@
+basePath: /
+definitions:
+  dto.ErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+  model.Track:
+    properties:
+      artist:
+        example: Lucid Dreams
+        type: string
+      lyrics:
+        example:
+        - I still see your shadows in my room...
+        items:
+          type: string
+        type: array
+      title:
+        example: Juice WRLD
+        type: string
+      translation:
+        example:
+        - Я все еще вижу твои тени в моей комнате...
+        items:
+          type: string
+        type: array
+    type: object
+  save.Request:
+    properties:
+      artist:
+        example: Juice WRLD
+        type: string
+      title:
+        example: Legends
+        type: string
+    required:
+    - artist
+    - title
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: API for getting song lyrics with translation
+  title: Lyrics Library API
+  version: "1.0"
+paths:
+  /lyrics:
+    get:
+      description: Returns lyrics for specific song or list of all songs by artist
+        if title not provided
+      parameters:
+      - description: Artist name
+        example: '"Juice WRLD"'
+        in: query
+        name: artist
+        required: true
+        type: string
+      - description: Song title (optional)
+        example: '"Legends"'
+        in: query
+        name: title
+        type: string
+      responses:
+        "200":
+          description: Returns artist tracks or track if title provided
+          schema:
+            items:
+              $ref: '#/definitions/model.Track'
+            type: array
+        "400":
+          description: Artist is required
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Artist/track not found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Get song lyrics or artist tracks
+      tags:
+      - lyrics
+    post:
+      consumes:
+      - application/json
+      description: Saves lyrics and translation for a given artist and song title
+      parameters:
+      - description: Lyrics request data
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/save.Request'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Successfully saved lyrics
+          schema:
+            $ref: '#/definitions/model.Track'
+        "400":
+          description: Invalid request data
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Lyrics not found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Save new lyrics with translation
+      tags:
+      - lyrics
+  /lyrics/{uuid}:
+    delete:
+      description: Delete song lyrics by uuid
+      parameters:
+      - description: Track UUID
+        example: e434dc13-ada5-4bde-b695-d97014dadebc
+        in: path
+        name: uuid
+        required: true
+        type: string
+      responses:
+        "204":
+          description: Track deleted successfully
+        "400":
+          description: When UUID is missing or invalid
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Delete song lyrics
+      tags:
+      - lyrics
+schemes:
+- http
+swagger: "2.0"

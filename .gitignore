@@ -25,3 +25,6 @@ go.work.sum
 # Config files
 local.yaml
 .env
+
+# Build
+main

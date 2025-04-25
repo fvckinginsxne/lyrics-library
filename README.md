@@ -15,21 +15,26 @@ RESTful microservice in Go for receiving song lyrics with Russian translation.
 - **External APIs**:
   - [LyricsOVH](https://lyricsovh.docs.apiary.io/#reference) - fetching lyrics
   - [Yandex.Translate](https://yandex.cloud/ru/docs/translate/quickstart) - translation into Russian
+- **Documentation**: Swagger
 
 ## Quick Start
 ### 1. Clone Repository
-```bash
+```
 git clone https://github.com/fvckinginsxne/lyrics-library.git
-cd lyrics-library
+cd app
 ```
 ### 2. Setup environment
-```bash
+```
 cp .env.example .env
 nano .env 
 ```
 ### 3. Start application
-```bash
+```
 docker-compose --env-file .env up -d
+```
+### 4. The documentation is located at
+```
+localhost:8080/swagger/index.html
 ```
 
 ## TODO 

@@ -4,7 +4,7 @@ tasks:
   run:
     desc: "Run service"
     cmds:
-      - go run ./cmd/lyrics-library --config=.env
+      - go run ./cmd/app --config=.env
 
   migrate:
     desc: "Apply or rollback migrations base on the action flag"

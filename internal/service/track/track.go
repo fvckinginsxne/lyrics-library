@@ -7,7 +7,7 @@ import (
 	"log/slog"
 
 	"lyrics-library/internal/client"
-	"lyrics-library/internal/domain/models"
+	"lyrics-library/internal/domain/model"
 	"lyrics-library/internal/lib/logger/sl"
 	"lyrics-library/internal/storage"
 )
@@ -21,17 +21,17 @@ type LyricsTranslator interface {
 }
 
 type Storage interface {
-	SaveTrack(ctx context.Context, track *models.Track) error
-	Track(ctx context.Context, artist, title string) (*models.Track, error)
-	TracksByArtist(ctx context.Context, artist string) ([]*models.Track, error)
+	SaveTrack(ctx context.Context, track *model.Track) error
+	Track(ctx context.Context, artist, title string) (*model.Track, error)
+	TracksByArtist(ctx context.Context, artist string) ([]*model.Track, error)
 	DeleteTrack(ctx context.Context, uuid string) error
 }
 
 type Cache interface {
-	SaveArtistTracks(ctx context.Context, artist string, tracks []*models.Track) error
-	ArtistTracks(ctx context.Context, artist string) ([]*models.Track, error)
-	Track(ctx context.Context, artist, title string) (*models.Track, error)
-	SaveTrack(ctx context.Context, track *models.Track) error
+	SaveArtistTracks(ctx context.Context, artist string, tracks []*model.Track) error
+	ArtistTracks(ctx context.Context, artist string) ([]*model.Track, error)
+	Track(ctx context.Context, artist, title string) (*model.Track, error)
+	SaveTrack(ctx context.Context, track *model.Track) error
 }
 
 var (
@@ -69,7 +69,7 @@ func New(
 func (s *Service) Save(
 	ctx context.Context,
 	artist, title string,
-) (*models.Track, error) {
+) (*model.Track, error) {
 	const op = "service.track.Save"
 
 	log := s.log.With("op", op)
@@ -110,7 +110,7 @@ func (s *Service) Save(
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	track := &models.Track{
+	track := &model.Track{
 		Artist:      artist,
 		Title:       title,
 		Lyrics:      lyrics,
@@ -139,7 +139,7 @@ func (s *Service) Save(
 func (s *Service) Track(
 	ctx context.Context,
 	artist, title string,
-) (*models.Track, error) {
+) (*model.Track, error) {
 	const op = "service.track.Track"
 
 	log := s.log.With(slog.String("op", op))
@@ -177,7 +177,7 @@ func (s *Service) Track(
 	return track, nil
 }
 
-func (s *Service) ArtistTracks(ctx context.Context, artist string) ([]*models.Track, error) {
+func (s *Service) ArtistTracks(ctx context.Context, artist string) ([]*model.Track, error) {
 	const op = "service.track.ArtistTracks"
 
 	log := s.log.With(slog.String("op", op))

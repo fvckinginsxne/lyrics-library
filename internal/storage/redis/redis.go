@@ -8,7 +8,7 @@ import (
 
 	"github.com/redis/go-redis/v9"
 
-	"lyrics-library/internal/domain/models"
+	"lyrics-library/internal/domain/model"
 	"lyrics-library/internal/storage"
 )
 
@@ -34,7 +34,7 @@ func New(redisURL, password string) (*Storage, error) {
 	}, nil
 }
 
-func (s *Storage) SaveTrack(ctx context.Context, track *models.Track) error {
+func (s *Storage) SaveTrack(ctx context.Context, track *model.Track) error {
 	const op = "storage.redis.SaveTrack"
 
 	key := generateTrackKey(track.Artist, track.Title)
@@ -52,7 +52,7 @@ func (s *Storage) SaveTrack(ctx context.Context, track *models.Track) error {
 	return nil
 }
 
-func (s *Storage) Track(ctx context.Context, artist, title string) (*models.Track, error) {
+func (s *Storage) Track(ctx context.Context, artist, title string) (*model.Track, error) {
 	const op = "storage.redis.GetTrack"
 
 	key := generateTrackKey(artist, title)
@@ -66,7 +66,7 @@ func (s *Storage) Track(ctx context.Context, artist, title string) (*models.Trac
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	var track models.Track
+	var track model.Track
 	if err := json.Unmarshal(data, &track); err != nil {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
@@ -74,7 +74,7 @@ func (s *Storage) Track(ctx context.Context, artist, title string) (*models.Trac
 	return &track, err
 }
 
-func (s *Storage) SaveArtistTracks(ctx context.Context, artist string, tracks []*models.Track) error {
+func (s *Storage) SaveArtistTracks(ctx context.Context, artist string, tracks []*model.Track) error {
 	const op = "storage.redis.SaveArtistTracks"
 
 	key := generateArtistTracksKey(artist)
@@ -91,7 +91,7 @@ func (s *Storage) SaveArtistTracks(ctx context.Context, artist string, tracks []
 	return nil
 }
 
-func (s *Storage) ArtistTracks(ctx context.Context, artist string) ([]*models.Track, error) {
+func (s *Storage) ArtistTracks(ctx context.Context, artist string) ([]*model.Track, error) {
 	const op = "storage.redis.GetArtistTracks"
 
 	key := generateArtistTracksKey(artist)
@@ -105,7 +105,7 @@ func (s *Storage) ArtistTracks(ctx context.Context, artist string) ([]*models.Tr
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	var tracks []*models.Track
+	var tracks []*model.Track
 	if err := json.Unmarshal(data, &tracks); err != nil {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}

@@ -8,7 +8,7 @@ import (
 
 	"github.com/lib/pq"
 
-	"lyrics-library/internal/domain/models"
+	"lyrics-library/internal/domain/model"
 	"lyrics-library/internal/storage"
 )
 
@@ -31,7 +31,7 @@ func New(dbURL string) (*Storage, error) {
 	return &Storage{db: db}, nil
 }
 
-func (s *Storage) SaveTrack(ctx context.Context, track *models.Track) error {
+func (s *Storage) SaveTrack(ctx context.Context, track *model.Track) error {
 	const op = "storage.postgres.Save"
 
 	tx, err := s.db.BeginTx(ctx, nil)
@@ -51,7 +51,7 @@ func (s *Storage) SaveTrack(ctx context.Context, track *models.Track) error {
 	return tx.Commit()
 }
 
-func (s *Storage) Track(ctx context.Context, artist, title string) (*models.Track, error) {
+func (s *Storage) Track(ctx context.Context, artist, title string) (*model.Track, error) {
 	const op = "storage.postgres.TrackInfo"
 
 	tx, err := s.db.BeginTx(ctx, nil)
@@ -80,7 +80,7 @@ func (s *Storage) Track(ctx context.Context, artist, title string) (*models.Trac
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	return &models.Track{
+	return &model.Track{
 		Artist:      artist,
 		Title:       title,
 		Lyrics:      lyrics,
@@ -88,7 +88,7 @@ func (s *Storage) Track(ctx context.Context, artist, title string) (*models.Trac
 	}, nil
 }
 
-func (s *Storage) TracksByArtist(ctx context.Context, artist string) ([]*models.Track, error) {
+func (s *Storage) TracksByArtist(ctx context.Context, artist string) ([]*model.Track, error) {
 	const op = "storage.postgres.TracksByArtist"
 
 	tx, err := s.db.BeginTx(ctx, nil)
@@ -105,7 +105,7 @@ func (s *Storage) TracksByArtist(ctx context.Context, artist string) ([]*models.
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	var tracks []*models.Track
+	var tracks []*model.Track
 
 	var (
 		title       string
@@ -118,7 +118,7 @@ func (s *Storage) TracksByArtist(ctx context.Context, artist string) ([]*models.
 			return nil, fmt.Errorf("%s: %w", op, err)
 		}
 
-		tracks = append(tracks, &models.Track{
+		tracks = append(tracks, &model.Track{
 			Artist:      artist,
 			Title:       title,
 			Lyrics:      lyrics,
