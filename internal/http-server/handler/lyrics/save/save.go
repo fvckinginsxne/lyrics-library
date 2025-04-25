@@ -3,14 +3,13 @@ package save
 import (
 	"context"
 	"errors"
+	"io"
 	"log/slog"
 	"net/http"
 
-	"github.com/go-chi/render"
-	"github.com/go-playground/validator"
+	"github.com/gin-gonic/gin"
 
 	"lyrics-library/internal/domain/models"
-	resp "lyrics-library/internal/lib/api/response"
 	"lyrics-library/internal/lib/logger/sl"
 	trackService "lyrics-library/internal/service/track"
 )
@@ -28,9 +27,10 @@ func New(
 	ctx context.Context,
 	log *slog.Logger,
 	trackSaver TrackSaver,
-) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		const op = "handlers.song.save.New"
+) gin.HandlerFunc {
+	const op = "handlers.song.save.New"
+
+	return func(c *gin.Context) {
 
 		log := log.With(
 			slog.String("op", op),
@@ -39,50 +39,36 @@ func New(
 		log.Info("saving lyrics")
 
 		var req Request
+		if err := c.ShouldBindJSON(&req); err != nil {
+			if errors.Is(err, io.EOF) {
+				log.Error("request body is empty")
 
-		if err := render.DecodeJSON(r.Body, &req); err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "request body is empty"})
+				return
+			}
 			log.Error("failed to decode request body", sl.Err(err))
 
-			w.WriteHeader(http.StatusBadRequest)
-
-			render.JSON(w, r, resp.Error("invalid request"))
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request"})
 			return
 		}
 
 		log.Debug("request body decoded", slog.Any("request", req))
 
-		if err := validator.New().Struct(req); err != nil {
-			log.Error("invalid request", sl.Err(err))
+		track, err := trackSaver.Save(ctx, req.Artist, req.Title)
+		if err != nil {
+			log.Error("failed to save lyrics", sl.Err(err))
 
-			w.WriteHeader(http.StatusBadRequest)
-
-			render.JSON(w, r, resp.Error("invalid request"))
+			switch {
+			case errors.Is(err, trackService.ErrLyricsNotFound):
+				c.JSON(http.StatusNotFound, gin.H{"error": "lyrics not found"})
+			case errors.Is(err, trackService.ErrFailedTranslateLyrics):
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "failed translate lyrics"})
+			default:
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+			}
 			return
 		}
 
-		track, err := trackSaver.Save(ctx, req.Artist, req.Title)
-		if err != nil {
-			switch {
-			case errors.Is(err, trackService.ErrLyricsNotFound):
-				w.WriteHeader(http.StatusNotFound)
-
-				render.JSON(w, r, resp.Error("lyrics not found"))
-				return
-			case errors.Is(err, trackService.ErrFailedTranslateLyrics):
-				w.WriteHeader(http.StatusBadRequest)
-
-				render.JSON(w, r, resp.Error("failed translate lyrcis"))
-				return
-			default:
-				w.WriteHeader(http.StatusInternalServerError)
-
-				render.JSON(w, r, resp.Error("internal error"))
-				return
-			}
-		}
-
-		w.WriteHeader(http.StatusCreated)
-
-		render.JSON(w, r, track)
+		c.JSON(http.StatusCreated, track)
 	}
 }

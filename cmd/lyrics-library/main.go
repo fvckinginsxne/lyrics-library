@@ -11,8 +11,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
+	"github.com/gin-gonic/gin"
 
 	"lyrics-library/internal/client/http/lyricsovh"
 	"lyrics-library/internal/client/http/yandex"
@@ -78,22 +77,22 @@ func main() {
 		redisCache,
 	)
 
-	router := chi.NewRouter()
+	g := gin.New()
 
-	router.Use(middleware.Recoverer)
-	router.Use(middleware.URLFormat)
-	router.Use(healthChecker.New(log, storage))
-	router.Use(mwLogger.New(log))
+	g.Use(gin.Recovery())
+	g.Use(healthChecker.New(log, storage))
+	g.Use(mwLogger.New(log))
 
-	router.Route("/lyrics", func(r chi.Router) {
-		r.Post("/", save.New(ctx, log, trackService))
-		r.Get("/", get.New(ctx, log, trackService, trackService))
-		r.Delete("/{uuid}", del.New(ctx, log, trackService))
-	})
+	lyricsGroup := g.Group("/lyrics")
+	{
+		lyricsGroup.POST("/", save.New(ctx, log, trackService))
+		lyricsGroup.GET("/", get.New(ctx, log, trackService, trackService))
+		lyricsGroup.DELETE("/:uuid", del.New(ctx, log, trackService))
+	}
 
 	srv := &http.Server{
 		Addr:         serverAddress(cfg),
-		Handler:      router,
+		Handler:      g,
 		ReadTimeout:  cfg.HTTPServer.Timeout,
 		WriteTimeout: cfg.HTTPServer.Timeout,
 		IdleTimeout:  cfg.HTTPServer.IdleTimeout,

@@ -6,9 +6,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/go-chi/render"
+	"github.com/gin-gonic/gin"
 
-	resp "lyrics-library/internal/lib/api/response"
 	"lyrics-library/internal/lib/logger/sl"
 )
 
@@ -19,22 +18,21 @@ type StorageHealthChecker interface {
 func New(
 	log *slog.Logger,
 	pgClient StorageHealthChecker,
-) func(http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			ctx, cancel := context.WithTimeout(r.Context(), 2*time.Second)
-			defer cancel()
+) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ctx, cancel := context.WithTimeout(c.Request.Context(), 2*time.Second)
+		defer cancel()
 
-			if err := pgClient.Ping(ctx); err != nil {
-				log.Error("postgres health check failed", sl.Err(err))
+		if err := pgClient.Ping(ctx); err != nil {
+			log.Error("postgres health check failed", sl.Err(err))
 
-				w.WriteHeader(http.StatusInternalServerError)
+			c.AbortWithStatusJSON(
+				http.StatusInternalServerError,
+				gin.H{"error": "internal server error"},
+			)
+			return
+		}
 
-				render.JSON(w, r, resp.Error("internal error"))
-				return
-			}
-
-			next.ServeHTTP(w, r)
-		})
+		c.Next()
 	}
 }

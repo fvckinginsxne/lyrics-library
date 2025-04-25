@@ -6,10 +6,9 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/go-chi/render"
+	"github.com/gin-gonic/gin"
 
 	"lyrics-library/internal/domain/models"
-	resp "lyrics-library/internal/lib/api/response"
 	trackService "lyrics-library/internal/service/track"
 )
 
@@ -21,29 +20,26 @@ type ArtistTracksProvider interface {
 	ArtistTracks(ctx context.Context, artist string) ([]*models.Track, error)
 }
 
-func New(ctx context.Context,
+func New(
+	ctx context.Context,
 	log *slog.Logger,
 	trackProvider TrackProvider,
 	artistTracksProvider ArtistTracksProvider,
-) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		const op = "handlers.song.read.New"
+) gin.HandlerFunc {
+	const op = "handlers.song.read.New"
 
+	return func(c *gin.Context) {
 		log = log.With(slog.String("op", op))
 
 		log.Info("getting lyrics")
 
-		query := r.URL.Query()
-
-		artist := query.Get("artist")
-		title := query.Get("title")
+		artist := c.Query("artist")
+		title := c.Query("title")
 
 		if artist == "" {
 			log.Error("missing 'artist' parameter")
 
-			w.WriteHeader(http.StatusBadRequest)
-
-			render.JSON(w, r, resp.Error("artist is required"))
+			c.JSON(http.StatusBadRequest, gin.H{"error": "artist is required"})
 			return
 		}
 
@@ -51,40 +47,29 @@ func New(ctx context.Context,
 			tracks, err := artistTracksProvider.ArtistTracks(ctx, artist)
 			if err != nil {
 				if errors.Is(err, trackService.ErrArtistTracksNotFound) {
-					w.WriteHeader(http.StatusBadRequest)
-
-					render.JSON(w, r, resp.Error("artist's tracks not found"))
+					c.JSON(http.StatusNotFound, gin.H{"error": "artist tracks not found"})
 					return
 				}
 
-				w.WriteHeader(http.StatusInternalServerError)
-
-				render.JSON(w, r, resp.Error("internal error"))
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 				return
 			}
 
-			w.WriteHeader(http.StatusOK)
-
-			render.JSON(w, r, tracks)
+			c.JSON(http.StatusOK, tracks)
 			return
 		}
 
 		track, err := trackProvider.Track(ctx, artist, title)
 		if err != nil {
 			if errors.Is(err, trackService.ErrTrackNotFound) {
-				w.WriteHeader(http.StatusBadRequest)
-
-				render.JSON(w, r, resp.Error("track not found"))
+				c.JSON(http.StatusNotFound, gin.H{"error": "track not found"})
 				return
 			}
 
-			w.WriteHeader(http.StatusInternalServerError)
-
-			render.JSON(w, r, resp.Error("internal error"))
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+			return
 		}
 
-		w.WriteHeader(http.StatusOK)
-
-		render.JSON(w, r, track)
+		c.JSON(http.StatusOK, track)
 	}
 }
