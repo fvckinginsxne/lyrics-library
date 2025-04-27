@@ -10,9 +10,10 @@ import (
 
 type Config struct {
 	Env                 string           `env:"APP_ENV" env-default:"local"`
-	HTTPServer          HTTPServerConfig `env-prefix:"SERVER_"`
-	DB                  DBConfig         `env-prefix:"DB_"`
-	Redis               RedisConfig      `env-prefix:"REDIS_"`
+	HTTPServer          HTTPServerConfig `env-prefix:"SERVER_" env-required:"true"`
+	DB                  DBConfig         `env-prefix:"DB_" env-required:"true"`
+	Redis               RedisConfig      `env-prefix:"REDIS_" env-required:"true"`
+	Auth                AuthConfig       `env-prefix:"AUTH_" env-required:"true"`
 	YandexTranslatorKey string           `env:"TRANSLATOR_API_KEY" env-required:"true"`
 }
 
@@ -37,6 +38,12 @@ type RedisConfig struct {
 	Port       string `env:"PORT" env-default:"6379"`
 	DockerPort string `env:"DOCKER_PORT" env-default:"6379"`
 	Password   string `env:"PASSWORD" env-required:"true"`
+}
+
+type AuthConfig struct {
+	Host    string `env:"HOST" env-default:"localhost"`
+	Port    string `env:"PORT" env-default:"44044"`
+	Retries int    `env:"RETRIES" env-default:"5"`
 }
 
 // MustLoad Load config file and panic if errors occurs

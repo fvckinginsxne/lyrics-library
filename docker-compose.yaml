@@ -8,13 +8,13 @@ services:
     env_file: .env
     environment:
       - CONFIG_PATH=/app/.env
+    volumes:
+      - go_mod_cache:/go/pkg/mod
     depends_on:
       postgres:
         condition: service_healthy
       migrate:
         condition: service_completed_successfully
-    volumes:
-      - ./.env:/app/.env
 
   migrate:
     image: migrate/migrate:v4.18.2
@@ -37,7 +37,7 @@ services:
     ports:
       - "${DB_PORT}:5432"
     volumes:
-      - pg_data:/var/lib/postgresql/data
+      - lyrics_pg_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${DB_USER} -d $${DB_NAME}"]
       interval: 5s
@@ -50,10 +50,10 @@ services:
       - "${REDIS_PORT}:6379"
     volumes:
       - ./redis.conf:/usr/local/etc/redis/redis.conf
-      - redis_data:/data
+      - lyrics_redis_data:/data
     command: redis-server /usr/local/etc/redis/redis.conf --requirepass ${REDIS_PASSWORD}
 
 volumes:
-  pg_data:
-  redis_data:
+  lyrics_pg_data:
+  lyrics_redis_data:
   go_mod_cache:

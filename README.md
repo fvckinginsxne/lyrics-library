@@ -3,13 +3,17 @@
 RESTful microservice in Go for receiving song lyrics with Russian translation.
 
 ## Features
-- Getting song lyrics by artist and track title
+- Save new lyrics with translation by artist and title
+- Get song lyrics by artist and track title
+- Delete lyrics by UUID
 - Automatic translation into Russian
 
 ## Stack
 - **Language**: Go 1.24+
-- **Web Framework**: Gin
+- **Web framework**: Gin
+- **Logging**: log/slog
 - **Database**: PostgreSQL
+- **Migrations**: golang-migrate
 - **Caching**: Redis
 - **Containerization**: Docker
 - **External APIs**:

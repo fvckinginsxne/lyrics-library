@@ -8,14 +8,14 @@ COPY go.mod go.sum ./
 RUN go mod download
 
 COPY . .
-RUN go build -o /app/main ./cmd/app/
+RUN go build -o main ./cmd/app
 
 FROM alpine:latest
 
 WORKDIR /app
 
-COPY --from=builder /app/main/ .
-COPY --from=builder /app/.env .
+COPY --from=builder /app/main .
+COPY .env .
 
 EXPOSE 8080
-CMD ["/app/main"]
+CMD ["./main"]

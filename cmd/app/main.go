@@ -16,6 +16,7 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 
 	_ "lyrics-library/docs"
+	authService "lyrics-library/internal/client/grpc/auth"
 	"lyrics-library/internal/client/http/lyricsovh"
 	"lyrics-library/internal/client/http/yandex"
 	"lyrics-library/internal/config"
@@ -77,6 +78,13 @@ func main() {
 
 	lyricsClient := lyricsovh.New(log)
 	translateClient := yandex.New(log, cfg.YandexTranslatorKey)
+
+	auth, err := authService.New(log, cfg)
+	if err != nil {
+		panic(err)
+	}
+
+	_ = auth
 
 	trackService := track.New(
 		log,
