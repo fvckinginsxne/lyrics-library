@@ -180,7 +180,7 @@ func setupPrettyLogger() *slog.Logger {
 }
 
 func serverAddress(cfg *config.Config) string {
-	return fmt.Sprintf("%s:%s", cfg.HTTPServer.Address, cfg.HTTPServer.Port)
+	return fmt.Sprintf("%s:%s", cfg.HTTPServer.Host, cfg.HTTPServer.Port)
 }
 
 func connURL(cfg *config.Config) string {

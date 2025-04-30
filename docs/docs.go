@@ -17,7 +17,7 @@ const docTemplate = `{
     "paths": {
         "/lyrics": {
             "get": {
-                "description": "Returns lyrics for specific song or list of all songs by artist if title not provided",
+                "description": "If 'title' is provided, returns lyrics for the specific song.\nOtherwise, returns a list of all songs by the artist (without lyrics).",
                 "tags": [
                     "lyrics"
                 ],
@@ -41,12 +41,9 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Returns artist tracks or track if title provided",
+                        "description": "Returns song (object) or artist tracks (array)",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/model.Track"
-                            }
+                            "type": "object"
                         }
                     },
                     "400": {
@@ -96,7 +93,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Successfully saved lyrics",
                         "schema": {
-                            "$ref": "#/definitions/model.Track"
+                            "$ref": "#/definitions/dto.TrackResponse"
                         }
                     },
                     "400": {
@@ -166,7 +163,7 @@ const docTemplate = `{
                 }
             }
         },
-        "model.Track": {
+        "dto.TrackResponse": {
             "type": "object",
             "properties": {
                 "artist": {

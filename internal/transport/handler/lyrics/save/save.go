@@ -30,7 +30,7 @@ type TrackSaver interface {
 // @Accept json
 // @Produce json
 // @Param input body Request true "Lyrics request data"
-// @Success 201 {object} model.Track "Successfully saved lyrics"
+// @Success 201 {object} dto.TrackResponse "Successfully saved lyrics"
 // @Failure 400 {object} dto.ErrorResponse "Invalid request data"
 // @Failure 404 {object} dto.ErrorResponse "Lyrics not found"
 // @Failure 500 {object} dto.ErrorResponse "Internal server error"
@@ -47,8 +47,6 @@ func New(
 		log := log.With(
 			slog.String("op", op),
 		)
-
-		log.Info("saving lyrics")
 
 		var req Request
 		if err := c.ShouldBindJSON(&req); err != nil {
@@ -84,6 +82,6 @@ func New(
 			return
 		}
 
-		c.JSON(http.StatusCreated, track)
+		c.JSON(http.StatusCreated, dto.ToTrackResponse(track))
 	}
 }

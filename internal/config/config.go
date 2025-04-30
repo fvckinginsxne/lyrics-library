@@ -18,7 +18,7 @@ type Config struct {
 }
 
 type HTTPServerConfig struct {
-	Address     string        `env:"HOST" env-required:"true"`
+	Host        string        `env:"HOST" env-required:"true"`
 	Port        string        `env:"PORT" env-default:"8080"`
 	Timeout     time.Duration `env:"TIMEOUT" env-default:"4s"`
 	IdleTimeout time.Duration `env:"IDLE_TIMEOUT" env-default:"60s"`
@@ -46,7 +46,7 @@ type AuthConfig struct {
 	Retries int    `env:"RETRIES" env-default:"5"`
 }
 
-// MustLoad Load config file and panic if errors occurs
+// MustLoad Load config file and panic if error occurs
 func MustLoad() *Config {
 	path := fetchConfigPath()
 	if path == "" {

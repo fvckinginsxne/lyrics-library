@@ -22,11 +22,12 @@ type ArtistTracksProvider interface {
 }
 
 // @Summary Get song lyrics or artist tracks
-// @Description Returns lyrics for specific song or list of all songs by artist if title not provided
+// @Description If 'title' is provided, returns lyrics for the specific song.
+// @Description Otherwise, returns a list of all songs by the artist (without lyrics).
 // @Tags lyrics
 // @Param artist query string true "Artist name" example("Juice WRLD")
 // @Param title query string false "Song title (optional)" example("Legends")
-// @Success 200 {array} model.Track "Returns artist tracks or track if title provided"
+// @Success 200 {object} dto.TrackResponse "Returns song (object) or artist tracks (array)"
 // @Failure 400 {object} dto.ErrorResponse "Artist is required"
 // @Failure 404 {object} dto.ErrorResponse "Artist/track not found"
 // @Failure 500 {object} dto.ErrorResponse "Internal server error"
@@ -66,7 +67,7 @@ func New(
 				return
 			}
 
-			c.JSON(http.StatusOK, tracks)
+			c.JSON(http.StatusOK, dto.TracksToTrackResponses(tracks))
 			return
 		}
 
@@ -81,6 +82,6 @@ func New(
 			return
 		}
 
-		c.JSON(http.StatusOK, track)
+		c.JSON(http.StatusOK, dto.ToTrackResponse(track))
 	}
 }
