@@ -41,7 +41,7 @@ definitions:
 host: localhost:8080
 info:
   contact: {}
-  description: API for getting song lyrics with translation
+  description: API for getting song track with translation
   title: Lyrics Library API
   version: "1.0"
 paths:
@@ -79,13 +79,13 @@ paths:
           description: Internal server error
           schema:
             $ref: '#/definitions/dto.ErrorResponse'
-      summary: Get song lyrics or artist tracks
+      summary: Get song track or artist tracks
       tags:
-      - lyrics
+      - track
     post:
       consumes:
       - application/json
-      description: Saves lyrics and translation for a given artist and song title
+      description: Saves track and translation for a given artist and song title
       parameters:
       - description: Lyrics request data
         in: body
@@ -97,7 +97,7 @@ paths:
       - application/json
       responses:
         "201":
-          description: Successfully saved lyrics
+          description: Successfully saved track
           schema:
             $ref: '#/definitions/dto.TrackResponse'
         "400":
@@ -112,12 +112,12 @@ paths:
           description: Internal server error
           schema:
             $ref: '#/definitions/dto.ErrorResponse'
-      summary: Save new lyrics with translation
+      summary: Save new track with translation
       tags:
-      - lyrics
+      - track
   /lyrics/{uuid}:
     delete:
-      description: Delete song lyrics by uuid
+      description: Delete song track by uuid
       parameters:
       - description: Track UUID
         example: e434dc13-ada5-4bde-b695-d97014dadebc
@@ -136,9 +136,9 @@ paths:
           description: Internal server error
           schema:
             $ref: '#/definitions/dto.ErrorResponse'
-      summary: Delete song lyrics
+      summary: Delete song track
       tags:
-      - lyrics
+      - track
 schemes:
 - http
 swagger: "2.0"

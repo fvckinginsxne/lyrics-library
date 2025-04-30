@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 
-	"lyrics-library/internal/client"
+	trackClient "lyrics-library/internal/client/http/track"
 	"lyrics-library/internal/domain/model"
 	"lyrics-library/internal/lib/logger/sl"
 	"lyrics-library/internal/storage"
@@ -35,8 +35,8 @@ type Cache interface {
 }
 
 var (
-	ErrLyricsNotFound        = errors.New("lyrics not found")
-	ErrFailedTranslateLyrics = errors.New("failed to translate lyrics")
+	ErrLyricsNotFound        = errors.New("track not found")
+	ErrFailedTranslateLyrics = errors.New("failed to translate track")
 	ErrTrackNotFound         = errors.New("track not found")
 	ErrArtistTracksNotFound  = errors.New("artist's tracks not found")
 	ErrInvalidUUID           = errors.New("invalid uuid")
@@ -85,24 +85,24 @@ func (s *Service) Save(
 
 	lyrics, err := s.lyricsProvider.Lyrics(ctx, artist, title)
 	if err != nil {
-		if errors.Is(err, client.ErrLyricsNotFound) {
-			log.Error("lyrics not found", sl.Err(err))
+		if errors.Is(err, trackClient.ErrLyricsNotFound) {
+			log.Error("track not found", sl.Err(err))
 
 			return nil, fmt.Errorf("%s: %w", op, ErrLyricsNotFound)
 		}
 
-		log.Error("failed to fetch lyrics", sl.Err(err))
+		log.Error("failed to fetch track", sl.Err(err))
 
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	log.Debug("lyrics fetched", slog.Any("lyrics", lyrics))
+	log.Debug("track fetched", slog.Any("track", lyrics))
 
 	translation, err := s.lyricsTranslator.TranslateLyrics(ctx, lyrics)
 	if err != nil {
-		log.Error("failed translate lyrics", sl.Err(err))
+		log.Error("failed translate track", sl.Err(err))
 
-		if errors.Is(err, client.ErrFailedTranslateLyrics) {
+		if errors.Is(err, trackClient.ErrFailedTranslateLyrics) {
 
 			return nil, fmt.Errorf("%s: %w", op, ErrFailedTranslateLyrics)
 		}
@@ -131,7 +131,7 @@ func (s *Service) Save(
 		}
 	}()
 
-	log.Info("lyrics saved successfully")
+	log.Info("track saved successfully")
 
 	return track, nil
 }

@@ -42,7 +42,7 @@ localhost:8080/swagger/index.html
 ```
 
 ## TODO 
-- [ ] Tests
+- [x] Tests
 - [ ] Add integration with auth service using gRPC  
 - [ ] Use kafka/rabbitmq
 - [ ] Make frontend

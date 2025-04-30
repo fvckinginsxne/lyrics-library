@@ -15,13 +15,13 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/lyrics": {
+        "/track": {
             "get": {
-                "description": "If 'title' is provided, returns lyrics for the specific song.\nOtherwise, returns a list of all songs by the artist (without lyrics).",
+                "description": "If 'title' is provided, returns track for the specific song.\nOtherwise, returns a list of all songs by the artist (without track).",
                 "tags": [
-                    "lyrics"
+                    "track"
                 ],
-                "summary": "Get song lyrics or artist tracks",
+                "summary": "Get song track or artist tracks",
                 "parameters": [
                     {
                         "type": "string",
@@ -67,7 +67,7 @@ const docTemplate = `{
                 }
             },
             "post": {
-                "description": "Saves lyrics and translation for a given artist and song title",
+                "description": "Saves track and translation for a given artist and song title",
                 "consumes": [
                     "application/json"
                 ],
@@ -75,9 +75,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "lyrics"
+                    "track"
                 ],
-                "summary": "Save new lyrics with translation",
+                "summary": "Save new track with translation",
                 "parameters": [
                     {
                         "description": "Lyrics request data",
@@ -91,7 +91,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "201": {
-                        "description": "Successfully saved lyrics",
+                        "description": "Successfully saved track",
                         "schema": {
                             "$ref": "#/definitions/dto.TrackResponse"
                         }
@@ -117,13 +117,13 @@ const docTemplate = `{
                 }
             }
         },
-        "/lyrics/{uuid}": {
+        "/track/{uuid}": {
             "delete": {
-                "description": "Delete song lyrics by uuid",
+                "description": "Delete song track by uuid",
                 "tags": [
-                    "lyrics"
+                    "track"
                 ],
-                "summary": "Delete song lyrics",
+                "summary": "Delete song track",
                 "parameters": [
                     {
                         "type": "string",
@@ -170,7 +170,7 @@ const docTemplate = `{
                     "type": "string",
                     "example": "Lucid Dreams"
                 },
-                "lyrics": {
+                "track": {
                     "type": "array",
                     "items": {
                         "type": "string"
@@ -221,7 +221,7 @@ var SwaggerInfo = &swag.Spec{
 	BasePath:         "/",
 	Schemes:          []string{"http"},
 	Title:            "Lyrics Library API",
-	Description:      "API for getting song lyrics with translation",
+	Description:      "API for getting song track with translation",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

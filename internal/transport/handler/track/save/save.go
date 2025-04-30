@@ -24,17 +24,17 @@ type TrackSaver interface {
 	Save(ctx context.Context, artist, title string) (*model.Track, error)
 }
 
-// @Summary Save new lyrics with translation
-// @Description Saves lyrics and translation for a given artist and song title
-// @Tags lyrics
+// @Summary Save new track with translation
+// @Description Saves track and translation for a given artist and song title
+// @Tags track
 // @Accept json
 // @Produce json
 // @Param input body Request true "Lyrics request data"
-// @Success 201 {object} dto.TrackResponse "Successfully saved lyrics"
+// @Success 201 {object} dto.TrackResponse "Successfully saved track"
 // @Failure 400 {object} dto.ErrorResponse "Invalid request data"
 // @Failure 404 {object} dto.ErrorResponse "Lyrics not found"
 // @Failure 500 {object} dto.ErrorResponse "Internal server error"
-// @Router /lyrics [post]
+// @Router /track [post]
 func New(
 	ctx context.Context,
 	log *slog.Logger,
@@ -66,15 +66,15 @@ func New(
 
 		track, err := trackSaver.Save(ctx, req.Artist, req.Title)
 		if err != nil {
-			log.Error("failed to save lyrics", sl.Err(err))
+			log.Error("failed to save track", sl.Err(err))
 
 			switch {
 			case errors.Is(err, trackService.ErrLyricsNotFound):
 				c.JSON(http.StatusNotFound,
-					dto.ErrorResponse{Error: "lyrics not found"})
+					dto.ErrorResponse{Error: "track not found"})
 			case errors.Is(err, trackService.ErrFailedTranslateLyrics):
 				c.JSON(http.StatusInternalServerError,
-					dto.ErrorResponse{Error: "failed translate lyrics"})
+					dto.ErrorResponse{Error: "failed translate track"})
 			default:
 				c.JSON(http.StatusInternalServerError,
 					dto.ErrorResponse{Error: "internal server error"})

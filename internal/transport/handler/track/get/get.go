@@ -21,17 +21,17 @@ type ArtistTracksProvider interface {
 	ArtistTracks(ctx context.Context, artist string) ([]*model.Track, error)
 }
 
-// @Summary Get song lyrics or artist tracks
-// @Description If 'title' is provided, returns lyrics for the specific song.
-// @Description Otherwise, returns a list of all songs by the artist (without lyrics).
-// @Tags lyrics
+// @Summary Get song track or artist tracks
+// @Description If 'title' is provided, returns track for the specific song.
+// @Description Otherwise, returns a list of all songs by the artist (without track).
+// @Tags track
 // @Param artist query string true "Artist name" example("Juice WRLD")
 // @Param title query string false "Song title (optional)" example("Legends")
 // @Success 200 {object} dto.TrackResponse "Returns song (object) or artist tracks (array)"
 // @Failure 400 {object} dto.ErrorResponse "Artist is required"
 // @Failure 404 {object} dto.ErrorResponse "Artist/track not found"
 // @Failure 500 {object} dto.ErrorResponse "Internal server error"
-// @Router /lyrics [get]
+// @Router /track [get]
 func New(
 	ctx context.Context,
 	log *slog.Logger,
@@ -43,7 +43,7 @@ func New(
 	return func(c *gin.Context) {
 		log = log.With(slog.String("op", op))
 
-		log.Info("getting lyrics")
+		log.Info("getting track")
 
 		artist := c.Query("artist")
 		title := c.Query("title")

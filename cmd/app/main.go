@@ -16,18 +16,17 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 
 	_ "lyrics-library/docs"
-	authService "lyrics-library/internal/client/grpc/auth"
-	"lyrics-library/internal/client/http/lyricsovh"
-	"lyrics-library/internal/client/http/yandex"
+	"lyrics-library/internal/client/http/track/lyricsovh"
+	"lyrics-library/internal/client/http/track/yandex"
 	"lyrics-library/internal/config"
 	"lyrics-library/internal/lib/logger/sl"
 	"lyrics-library/internal/lib/logger/slogpretty"
 	"lyrics-library/internal/service/track"
 	"lyrics-library/internal/storage/postgres"
 	"lyrics-library/internal/storage/redis"
-	del "lyrics-library/internal/transport/handler/lyrics/delete"
-	"lyrics-library/internal/transport/handler/lyrics/get"
-	"lyrics-library/internal/transport/handler/lyrics/save"
+	del "lyrics-library/internal/transport/handler/track/delete"
+	"lyrics-library/internal/transport/handler/track/get"
+	"lyrics-library/internal/transport/handler/track/save"
 	healthChecker "lyrics-library/internal/transport/middleware/health-checker"
 	mwLogger "lyrics-library/internal/transport/middleware/logger"
 )
@@ -41,7 +40,7 @@ const (
 
 // @title Lyrics Library API
 // @version 1.0
-// @description API for getting song lyrics with translation
+// @description API for getting song track with translation
 // @host localhost:8080
 // @BasePath /
 // @schemes http
@@ -79,13 +78,6 @@ func main() {
 	lyricsClient := lyricsovh.New(log)
 	translateClient := yandex.New(log, cfg.YandexTranslatorKey)
 
-	auth, err := authService.New(log, cfg)
-	if err != nil {
-		panic(err)
-	}
-
-	_ = auth
-
 	trackService := track.New(
 		log,
 		lyricsClient,
@@ -102,7 +94,7 @@ func main() {
 
 	g.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	lyricsGroup := g.Group("/lyrics")
+	lyricsGroup := g.Group("/track")
 	{
 		lyricsGroup.POST("/", save.New(ctx, log, trackService))
 		lyricsGroup.GET("/", get.New(ctx, log, trackService, trackService))

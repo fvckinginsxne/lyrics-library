@@ -16,14 +16,14 @@ type TrackDeleter interface {
 	Delete(ctx context.Context, uuid string) error
 }
 
-// @Summary Delete song lyrics
-// @Description Delete song lyrics by uuid
-// @Tags lyrics
+// @Summary Delete song track
+// @Description Delete song track by uuid
+// @Tags track
 // @Param uuid path string true "Track UUID" example(e434dc13-ada5-4bde-b695-d97014dadebc)
 // @Success 204 "Track deleted successfully"
 // @Failure 400 {object} dto.ErrorResponse "When UUID is missing or invalid"
 // @Failure 500 {object} dto.ErrorResponse "Internal server error"
-// @Router /lyrics/{uuid} [delete]
+// @Router /track/{uuid} [delete]
 func New(
 	ctx context.Context,
 	log *slog.Logger,

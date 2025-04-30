@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	apiClient "lyrics-library/internal/client"
+	"lyrics-library/internal/client/http/track"
 )
 
 type Response struct {
@@ -43,7 +44,7 @@ func (c *Client) TranslateLyrics(ctx context.Context, lyrics []string) ([]string
 
 	log := c.log.With(slog.String("op", op))
 
-	log.Info("translating lyrics")
+	log.Info("translating track")
 
 	ctx, cancel := context.WithTimeout(ctx, apiClient.RequestTimeout)
 	defer cancel()
@@ -61,12 +62,12 @@ func (c *Client) TranslateLyrics(ctx context.Context, lyrics []string) ([]string
 	log.Debug("yandex translator response", slog.Any("response", res))
 
 	if len(res.Translations) == 0 {
-		return nil, apiClient.ErrFailedTranslateLyrics
+		return nil, track.ErrFailedTranslateLyrics
 	}
 
-	formatted := apiClient.FormatLyrics(res.Translations[0].Text)
+	formatted := track.FormatLyrics(res.Translations[0].Text)
 
-	log.Info("lyrics translated successfully")
+	log.Info("track translated successfully")
 
 	return formatted, nil
 }
