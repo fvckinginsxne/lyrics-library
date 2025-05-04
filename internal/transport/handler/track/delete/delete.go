@@ -8,7 +8,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"lyrics-library/internal/service/track"
+	trackService "lyrics-library/internal/service/track"
 	"lyrics-library/internal/transport/dto"
 )
 
@@ -45,9 +45,9 @@ func New(
 		}
 
 		if err := trackDeleter.Delete(ctx, uuid); err != nil {
-			if errors.Is(err, track.ErrInvalidUUID) {
+			if errors.Is(err, trackService.ErrInvalidUUID) {
 
-				c.JSON(http.StatusBadRequest, dto.ErrorResponse{Error: "invalid uuid"})
+				c.JSON(http.StatusNotFound, dto.ErrorResponse{Error: "track not found"})
 				return
 			}
 

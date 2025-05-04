@@ -1,4 +1,4 @@
-package save
+package create
 
 import (
 	"context"
@@ -9,19 +9,13 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"lyrics-library/internal/domain/model"
 	"lyrics-library/internal/lib/logger/sl"
 	trackService "lyrics-library/internal/service/track"
 	"lyrics-library/internal/transport/dto"
 )
 
-type Request struct {
-	Artist string `json:"artist" binding:"required" example:"Juice WRLD"`
-	Title  string `json:"title" binding:"required" example:"Legends"`
-}
-
 type TrackSaver interface {
-	Save(ctx context.Context, artist, title string) (*model.Track, error)
+	Save(ctx context.Context, artist, title string) (*dto.TrackResponse, error)
 }
 
 // @Summary Save new track with translation
@@ -29,7 +23,7 @@ type TrackSaver interface {
 // @Tags track
 // @Accept json
 // @Produce json
-// @Param input body Request true "Lyrics request data"
+// @Param input body dto.CreateRequest true "Lyrics request data"
 // @Success 201 {object} dto.TrackResponse "Successfully saved track"
 // @Failure 400 {object} dto.ErrorResponse "Invalid request data"
 // @Failure 404 {object} dto.ErrorResponse "Lyrics not found"
@@ -40,15 +34,13 @@ func New(
 	log *slog.Logger,
 	trackSaver TrackSaver,
 ) gin.HandlerFunc {
-	const op = "handlers.song.save.New"
+	const op = "handlers.song.create.New"
 
 	return func(c *gin.Context) {
 
-		log := log.With(
-			slog.String("op", op),
-		)
+		log := log.With(slog.String("op", op))
 
-		var req Request
+		var req dto.CreateRequest
 		if err := c.ShouldBindJSON(&req); err != nil {
 			if errors.Is(err, io.EOF) {
 				log.Error("request body is empty")
@@ -66,7 +58,7 @@ func New(
 
 		track, err := trackSaver.Save(ctx, req.Artist, req.Title)
 		if err != nil {
-			log.Error("failed to save track", sl.Err(err))
+			log.Error("failed to create track", sl.Err(err))
 
 			switch {
 			case errors.Is(err, trackService.ErrLyricsNotFound):
@@ -82,6 +74,6 @@ func New(
 			return
 		}
 
-		c.JSON(http.StatusCreated, dto.ToTrackResponse(track))
+		c.JSON(http.StatusCreated, track)
 	}
 }

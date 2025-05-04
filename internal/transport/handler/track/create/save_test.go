@@ -1,4 +1,4 @@
-package save
+package create
 
 import (
 	"context"
@@ -39,7 +39,7 @@ func TestSaveHandler(t *testing.T) {
 		expectedBody   string
 	}{
 		{
-			name:        "successful save",
+			name:        "successful create",
 			requestBody: `{"artist": "Juice WRLD", "title": "Lucid Dreams"}`,
 			mockSetup: func(m *MockTrackSaver) {
 				m.On("Save", mock.Anything, "Juice WRLD", "Lucid Dreams").

@@ -16,7 +16,7 @@ const docTemplate = `{
     "basePath": "{{.BasePath}}",
     "paths": {
         "/track": {
-            "get": {
+            "read": {
                 "description": "If 'title' is provided, returns track for the specific song.\nOtherwise, returns a list of all songs by the artist (without track).",
                 "tags": [
                     "track"
@@ -85,7 +85,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/save.Request"
+                            "$ref": "#/definitions/create.Request"
                         }
                     }
                 ],
@@ -194,7 +194,7 @@ const docTemplate = `{
                 }
             }
         },
-        "save.Request": {
+        "create.Request": {
             "type": "object",
             "required": [
                 "artist",

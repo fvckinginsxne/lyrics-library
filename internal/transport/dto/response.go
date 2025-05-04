@@ -2,6 +2,10 @@ package dto
 
 import "lyrics-library/internal/domain/model"
 
+type ErrorResponse struct {
+	Error string `json:"error"`
+}
+
 type TrackResponse struct {
 	Artist      string   `json:"artist" example:"Lucid Dreams"`
 	Title       string   `json:"title" example:"Juice WRLD"`

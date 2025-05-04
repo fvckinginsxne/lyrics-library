@@ -24,9 +24,9 @@ import (
 	"lyrics-library/internal/service/track"
 	"lyrics-library/internal/storage/postgres"
 	"lyrics-library/internal/storage/redis"
+	"lyrics-library/internal/transport/handler/track/create"
 	del "lyrics-library/internal/transport/handler/track/delete"
-	"lyrics-library/internal/transport/handler/track/get"
-	"lyrics-library/internal/transport/handler/track/save"
+	"lyrics-library/internal/transport/handler/track/read"
 	healthChecker "lyrics-library/internal/transport/middleware/health-checker"
 	mwLogger "lyrics-library/internal/transport/middleware/logger"
 )
@@ -59,7 +59,7 @@ func main() {
 
 	dbURL := connURL(cfg)
 
-	log.Debug("Connecting to database", slog.String("url", dbURL))
+	log.Debug("connecting to database", slog.String("url", dbURL))
 
 	storage, err := postgres.New(dbURL)
 	if err != nil {
@@ -68,7 +68,7 @@ func main() {
 
 	redisHost := redisHost(cfg)
 
-	log.Debug("Connecting to redis", slog.String("host", redisHost))
+	log.Debug("connecting to redis", slog.String("host", redisHost))
 
 	redisCache, err := redis.New(redisHost, cfg.Redis.Password)
 	if err != nil {
@@ -94,10 +94,10 @@ func main() {
 
 	g.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	lyricsGroup := g.Group("/track")
+	lyricsGroup := g.Group("/lyrics")
 	{
-		lyricsGroup.POST("/", save.New(ctx, log, trackService))
-		lyricsGroup.GET("/", get.New(ctx, log, trackService, trackService))
+		lyricsGroup.POST("/", create.New(ctx, log, trackService))
+		lyricsGroup.GET("/", read.New(ctx, log, trackService, trackService))
 		lyricsGroup.DELETE("/:uuid", del.New(ctx, log, trackService))
 	}
 

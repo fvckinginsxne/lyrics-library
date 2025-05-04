@@ -12,6 +12,7 @@ RESTful microservice in Go for receiving song lyrics with Russian translation.
 - **Language**: Go 1.24+
 - **Web framework**: Gin
 - **Logging**: log/slog
+- **Testing**: testify
 - **Database**: PostgreSQL
 - **Migrations**: golang-migrate
 - **Caching**: Redis
@@ -44,6 +45,5 @@ localhost:8080/swagger/index.html
 ## TODO 
 - [x] Tests
 - [ ] Add integration with auth service using gRPC  
-- [ ] Use kafka/rabbitmq
 - [ ] Make frontend
 - [ ] Deploy fullstack app on server

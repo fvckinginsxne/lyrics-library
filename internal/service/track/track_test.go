@@ -52,7 +52,7 @@ func TestService_Save(t *testing.T) {
 		expectedError error
 	}{
 		{
-			name:   "successful save with cache hit",
+			name:   "successful create with cache hit",
 			artist: "Artist1",
 			title:  "Song1",
 			mockSetup: func(m *Mocks) {
@@ -68,7 +68,7 @@ func TestService_Save(t *testing.T) {
 			},
 		},
 		{
-			name:   "successful save with new track",
+			name:   "successful create with new track",
 			artist: "Artist2",
 			title:  "Song2",
 			mockSetup: func(m *Mocks) {

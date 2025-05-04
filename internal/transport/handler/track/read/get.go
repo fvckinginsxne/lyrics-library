@@ -1,4 +1,4 @@
-package get
+package read
 
 import (
 	"context"
@@ -8,17 +8,16 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"lyrics-library/internal/domain/model"
 	trackService "lyrics-library/internal/service/track"
 	"lyrics-library/internal/transport/dto"
 )
 
 type TrackProvider interface {
-	Track(ctx context.Context, artist, title string) (*model.Track, error)
+	Track(ctx context.Context, artist, title string) (*dto.TrackResponse, error)
 }
 
 type ArtistTracksProvider interface {
-	ArtistTracks(ctx context.Context, artist string) ([]*model.Track, error)
+	ArtistTracks(ctx context.Context, artist string) ([]*dto.TrackResponse, error)
 }
 
 // @Summary Get song track or artist tracks
@@ -31,7 +30,7 @@ type ArtistTracksProvider interface {
 // @Failure 400 {object} dto.ErrorResponse "Artist is required"
 // @Failure 404 {object} dto.ErrorResponse "Artist/track not found"
 // @Failure 500 {object} dto.ErrorResponse "Internal server error"
-// @Router /track [get]
+// @Router /track [read]
 func New(
 	ctx context.Context,
 	log *slog.Logger,
@@ -67,7 +66,7 @@ func New(
 				return
 			}
 
-			c.JSON(http.StatusOK, dto.TracksToTrackResponses(tracks))
+			c.JSON(http.StatusOK, tracks)
 			return
 		}
 
@@ -82,6 +81,6 @@ func New(
 			return
 		}
 
-		c.JSON(http.StatusOK, dto.ToTrackResponse(track))
+		c.JSON(http.StatusOK, track)
 	}
 }

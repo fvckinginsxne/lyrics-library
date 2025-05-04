@@ -10,6 +10,7 @@ import (
 	"lyrics-library/internal/domain/model"
 	"lyrics-library/internal/lib/logger/sl"
 	"lyrics-library/internal/storage"
+	"lyrics-library/internal/transport/dto"
 )
 
 type LyricsProvider interface {
@@ -69,7 +70,7 @@ func New(
 func (s *Service) Save(
 	ctx context.Context,
 	artist, title string,
-) (*model.Track, error) {
+) (*dto.TrackResponse, error) {
 	const op = "service.track.Save"
 
 	log := s.log.With("op", op)
@@ -80,7 +81,7 @@ func (s *Service) Save(
 	if err == nil {
 		log.Info("returning cached track")
 
-		return cached, nil
+		return dto.ToTrackResponse(cached), nil
 	}
 
 	lyrics, err := s.lyricsProvider.Lyrics(ctx, artist, title)
@@ -118,7 +119,7 @@ func (s *Service) Save(
 	}
 
 	if err := s.storage.SaveTrack(ctx, track); err != nil {
-		log.Error("failed to save track", sl.Err(err))
+		log.Error("failed to create track", sl.Err(err))
 
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
@@ -133,13 +134,13 @@ func (s *Service) Save(
 
 	log.Info("track saved successfully")
 
-	return track, nil
+	return dto.ToTrackResponse(track), nil
 }
 
 func (s *Service) Track(
 	ctx context.Context,
 	artist, title string,
-) (*model.Track, error) {
+) (*dto.TrackResponse, error) {
 	const op = "service.track.Track"
 
 	log := s.log.With(slog.String("op", op))
@@ -148,14 +149,14 @@ func (s *Service) Track(
 
 	cached, err := s.cache.Track(ctx, artist, title)
 	if err == nil {
-		log.Info("returnig cached track")
+		log.Info("returning cached track")
 
-		return cached, nil
+		return dto.ToTrackResponse(cached), nil
 	}
 
 	track, err := s.storage.Track(ctx, artist, title)
 	if err != nil {
-		log.Error("failed to get track", sl.Err(err))
+		log.Error("failed to read track", sl.Err(err))
 
 		if errors.Is(err, storage.ErrTrackNotFound) {
 			return nil, fmt.Errorf("%s: %w", op, ErrTrackNotFound)
@@ -174,10 +175,10 @@ func (s *Service) Track(
 
 	log.Info("track got successfully")
 
-	return track, nil
+	return dto.ToTrackResponse(track), nil
 }
 
-func (s *Service) ArtistTracks(ctx context.Context, artist string) ([]*model.Track, error) {
+func (s *Service) ArtistTracks(ctx context.Context, artist string) ([]*dto.TrackResponse, error) {
 	const op = "service.track.ArtistTracks"
 
 	log := s.log.With(slog.String("op", op))
@@ -186,7 +187,7 @@ func (s *Service) ArtistTracks(ctx context.Context, artist string) ([]*model.Tra
 	if err == nil {
 		log.Info("getting tracks from cache")
 
-		return cached, nil
+		return dto.TracksToTrackResponses(cached), nil
 	}
 
 	tracks, err := s.storage.TracksByArtist(ctx, artist)
@@ -197,7 +198,7 @@ func (s *Service) ArtistTracks(ctx context.Context, artist string) ([]*model.Tra
 			return nil, fmt.Errorf("%s: %w", op, ErrArtistTracksNotFound)
 		}
 
-		log.Error("failed to get tracks by artist", sl.Err(err))
+		log.Error("failed to read tracks by artist", sl.Err(err))
 
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
@@ -212,7 +213,7 @@ func (s *Service) ArtistTracks(ctx context.Context, artist string) ([]*model.Tra
 
 	log.Info("artist's tracks got successfully", slog.Any("tracks", tracks))
 
-	return tracks, nil
+	return dto.TracksToTrackResponses(tracks), nil
 }
 
 func (s *Service) Delete(ctx context.Context, uuid string) error {
