@@ -21,7 +21,7 @@ type TrackDeleter interface {
 // @Tags track
 // @Param uuid path string true "Track UUID" example(e434dc13-ada5-4bde-b695-d97014dadebc)
 // @Success 204 "Track deleted successfully"
-// @Failure 400 {object} dto.ErrorResponse "When UUID is missing or invalid"
+// @Failure 400 {object} dto.ErrorResponse "Invalid request"
 // @Failure 500 {object} dto.ErrorResponse "Internal server error"
 // @Router /track/{uuid} [delete]
 func New(
@@ -47,7 +47,7 @@ func New(
 		if err := trackDeleter.Delete(ctx, uuid); err != nil {
 			if errors.Is(err, trackService.ErrInvalidUUID) {
 
-				c.JSON(http.StatusNotFound, dto.ErrorResponse{Error: "track not found"})
+				c.JSON(http.StatusBadRequest, dto.ErrorResponse{Error: "track not found"})
 				return
 			}
 

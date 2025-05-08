@@ -10,6 +10,7 @@ services:
       - CONFIG_PATH=/app/.env
     volumes:
       - go_mod_cache:/go/pkg/mod
+      - ./:/app
     depends_on:
       postgres:
         condition: service_healthy

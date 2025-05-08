@@ -21,21 +21,22 @@ type Response struct {
 }
 
 type Client struct {
-	log    *slog.Logger
-	client *http.Client
-	apiKey string
+	log        *slog.Logger
+	client     *http.Client
+	apiKey     string
+	apiURL     string
+	targetLang string
 }
 
-const (
-	yandexTranslateURL = "https://translate.api.cloud.yandex.net/translate/v2/translate"
-	targetLanguage     = "ru"
-)
-
-func New(log *slog.Logger, apiKey string) *Client {
+func New(log *slog.Logger,
+	apiKey, apiURL, targetLang string,
+) *Client {
 	return &Client{
-		log:    log,
-		client: &http.Client{},
-		apiKey: apiKey,
+		log:        log,
+		client:     &http.Client{},
+		apiKey:     apiKey,
+		apiURL:     apiURL,
+		targetLang: targetLang,
 	}
 }
 
@@ -75,7 +76,7 @@ func (c *Client) TranslateLyrics(ctx context.Context, lyrics []string) ([]string
 func (c *Client) buildAPIRequest(ctx context.Context, lyrics []string) (*http.Request, error) {
 	requestData := map[string]interface{}{
 		"texts":              []string{strings.Join(lyrics, "\n")},
-		"targetLanguageCode": targetLanguage,
+		"targetLanguageCode": c.targetLang,
 	}
 
 	reqBody, err := json.Marshal(requestData)
@@ -84,7 +85,7 @@ func (c *Client) buildAPIRequest(ctx context.Context, lyrics []string) (*http.Re
 	}
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost,
-		yandexTranslateURL,
+		c.apiURL,
 		bytes.NewBuffer(reqBody),
 	)
 	if err != nil {

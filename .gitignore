@@ -29,3 +29,6 @@ local.yaml
 
 # Build
 main
+
+# Air
+tmp/

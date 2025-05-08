@@ -25,8 +25,7 @@ type TrackSaver interface {
 // @Produce json
 // @Param input body dto.CreateRequest true "Lyrics request data"
 // @Success 201 {object} dto.TrackResponse "Successfully saved track"
-// @Failure 400 {object} dto.ErrorResponse "Invalid request data"
-// @Failure 404 {object} dto.ErrorResponse "Lyrics not found"
+// @Failure 400 {object} dto.ErrorResponse "Invalid request"
 // @Failure 500 {object} dto.ErrorResponse "Internal server error"
 // @Router /track [post]
 func New(
@@ -62,11 +61,11 @@ func New(
 
 			switch {
 			case errors.Is(err, trackService.ErrLyricsNotFound):
-				c.JSON(http.StatusNotFound,
+				c.JSON(http.StatusBadRequest,
 					dto.ErrorResponse{Error: "track not found"})
 			case errors.Is(err, trackService.ErrFailedTranslateLyrics):
-				c.JSON(http.StatusInternalServerError,
-					dto.ErrorResponse{Error: "failed translate track"})
+				c.JSON(http.StatusBadRequest,
+					dto.ErrorResponse{Error: "failed translate lyrics"})
 			default:
 				c.JSON(http.StatusInternalServerError,
 					dto.ErrorResponse{Error: "internal server error"})

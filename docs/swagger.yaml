@@ -1,5 +1,17 @@
 basePath: /
 definitions:
+  dto.CreateRequest:
+    properties:
+      artist:
+        example: Juice WRLD
+        type: string
+      title:
+        example: Lucid Dreams
+        type: string
+    required:
+    - artist
+    - title
+    type: object
   dto.ErrorResponse:
     properties:
       error:
@@ -26,18 +38,6 @@ definitions:
           type: string
         type: array
     type: object
-  save.Request:
-    properties:
-      artist:
-        example: Juice WRLD
-        type: string
-      title:
-        example: Legends
-        type: string
-    required:
-    - artist
-    - title
-    type: object
 host: localhost:8080
 info:
   contact: {}
@@ -45,11 +45,11 @@ info:
   title: Lyrics Library API
   version: "1.0"
 paths:
-  /lyrics:
+  /track:
     get:
       description: |-
-        If 'title' is provided, returns lyrics for the specific song.
-        Otherwise, returns a list of all songs by the artist (without lyrics).
+        If 'title' is provided, returns track for the specific song.
+        Otherwise, returns a list of all songs by the artist (without track).
       parameters:
       - description: Artist name
         example: '"Juice WRLD"'
@@ -66,13 +66,9 @@ paths:
         "200":
           description: Returns song (object) or artist tracks (array)
           schema:
-            type: object
+            $ref: '#/definitions/dto.TrackResponse'
         "400":
-          description: Artist is required
-          schema:
-            $ref: '#/definitions/dto.ErrorResponse'
-        "404":
-          description: Artist/track not found
+          description: Invalid request
           schema:
             $ref: '#/definitions/dto.ErrorResponse'
         "500":
@@ -92,7 +88,7 @@ paths:
         name: input
         required: true
         schema:
-          $ref: '#/definitions/save.Request'
+          $ref: '#/definitions/dto.CreateRequest'
       produces:
       - application/json
       responses:
@@ -101,11 +97,7 @@ paths:
           schema:
             $ref: '#/definitions/dto.TrackResponse'
         "400":
-          description: Invalid request data
-          schema:
-            $ref: '#/definitions/dto.ErrorResponse'
-        "404":
-          description: Lyrics not found
+          description: Invalid request
           schema:
             $ref: '#/definitions/dto.ErrorResponse'
         "500":
@@ -115,7 +107,7 @@ paths:
       summary: Save new track with translation
       tags:
       - track
-  /lyrics/{uuid}:
+  /track/{uuid}:
     delete:
       description: Delete song track by uuid
       parameters:
@@ -129,7 +121,7 @@ paths:
         "204":
           description: Track deleted successfully
         "400":
-          description: When UUID is missing or invalid
+          description: Invalid request
           schema:
             $ref: '#/definitions/dto.ErrorResponse'
         "500":

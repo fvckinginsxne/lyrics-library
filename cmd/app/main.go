@@ -75,8 +75,12 @@ func main() {
 		panic(err)
 	}
 
-	lyricsClient := lyricsovh.New(log)
-	translateClient := yandex.New(log, cfg.YandexTranslatorKey)
+	lyricsClient := lyricsovh.New(log, cfg.LyricsAPI.URL)
+	translateClient := yandex.New(log,
+		cfg.TranslatorAPI.Key,
+		cfg.TranslatorAPI.URL,
+		cfg.TranslatorAPI.TargetLang,
+	)
 
 	trackService := track.New(
 		log,

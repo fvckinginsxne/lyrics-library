@@ -16,7 +16,7 @@ const docTemplate = `{
     "basePath": "{{.BasePath}}",
     "paths": {
         "/track": {
-            "read": {
+            "get": {
                 "description": "If 'title' is provided, returns track for the specific song.\nOtherwise, returns a list of all songs by the artist (without track).",
                 "tags": [
                     "track"
@@ -43,17 +43,11 @@ const docTemplate = `{
                     "200": {
                         "description": "Returns song (object) or artist tracks (array)",
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/dto.TrackResponse"
                         }
                     },
                     "400": {
-                        "description": "Artist is required",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Artist/track not found",
+                        "description": "Invalid request",
                         "schema": {
                             "$ref": "#/definitions/dto.ErrorResponse"
                         }
@@ -85,7 +79,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/create.Request"
+                            "$ref": "#/definitions/dto.CreateRequest"
                         }
                     }
                 ],
@@ -97,13 +91,7 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Invalid request data",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Lyrics not found",
+                        "description": "Invalid request",
                         "schema": {
                             "$ref": "#/definitions/dto.ErrorResponse"
                         }
@@ -139,7 +127,7 @@ const docTemplate = `{
                         "description": "Track deleted successfully"
                     },
                     "400": {
-                        "description": "When UUID is missing or invalid",
+                        "description": "Invalid request",
                         "schema": {
                             "$ref": "#/definitions/dto.ErrorResponse"
                         }
@@ -155,6 +143,23 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "dto.CreateRequest": {
+            "type": "object",
+            "required": [
+                "artist",
+                "title"
+            ],
+            "properties": {
+                "artist": {
+                    "type": "string",
+                    "example": "Juice WRLD"
+                },
+                "title": {
+                    "type": "string",
+                    "example": "Lucid Dreams"
+                }
+            }
+        },
         "dto.ErrorResponse": {
             "type": "object",
             "properties": {
@@ -170,7 +175,7 @@ const docTemplate = `{
                     "type": "string",
                     "example": "Lucid Dreams"
                 },
-                "track": {
+                "lyrics": {
                     "type": "array",
                     "items": {
                         "type": "string"
@@ -191,23 +196,6 @@ const docTemplate = `{
                     "example": [
                         "Я все еще вижу твои тени в моей комнате..."
                     ]
-                }
-            }
-        },
-        "create.Request": {
-            "type": "object",
-            "required": [
-                "artist",
-                "title"
-            ],
-            "properties": {
-                "artist": {
-                    "type": "string",
-                    "example": "Juice WRLD"
-                },
-                "title": {
-                    "type": "string",
-                    "example": "Legends"
                 }
             }
         }

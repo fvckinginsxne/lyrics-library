@@ -27,10 +27,9 @@ type ArtistTracksProvider interface {
 // @Param artist query string true "Artist name" example("Juice WRLD")
 // @Param title query string false "Song title (optional)" example("Legends")
 // @Success 200 {object} dto.TrackResponse "Returns song (object) or artist tracks (array)"
-// @Failure 400 {object} dto.ErrorResponse "Artist is required"
-// @Failure 404 {object} dto.ErrorResponse "Artist/track not found"
+// @Failure 400 {object} dto.ErrorResponse "Invalid request"
 // @Failure 500 {object} dto.ErrorResponse "Internal server error"
-// @Router /track [read]
+// @Router /track [get]
 func New(
 	ctx context.Context,
 	log *slog.Logger,
@@ -58,7 +57,7 @@ func New(
 			tracks, err := artistTracksProvider.ArtistTracks(ctx, artist)
 			if err != nil {
 				if errors.Is(err, trackService.ErrArtistTracksNotFound) {
-					c.JSON(http.StatusNotFound, dto.ErrorResponse{Error: "artist tracks not found"})
+					c.JSON(http.StatusBadRequest, dto.ErrorResponse{Error: "artist tracks not found"})
 					return
 				}
 
@@ -73,7 +72,7 @@ func New(
 		track, err := trackProvider.Track(ctx, artist, title)
 		if err != nil {
 			if errors.Is(err, trackService.ErrTrackNotFound) {
-				c.JSON(http.StatusNotFound, dto.ErrorResponse{Error: "track not found"})
+				c.JSON(http.StatusBadRequest, dto.ErrorResponse{Error: "track not found"})
 				return
 			}
 

@@ -12,24 +12,22 @@ import (
 	"lyrics-library/internal/client/http/track"
 )
 
-const (
-	apiBaseURL = "https://api.lyrics.ovh/v1"
-)
-
 type Client struct {
 	log    *slog.Logger
 	client *http.Client
+	apiURL string
 }
 
-func New(log *slog.Logger) *Client {
+func New(log *slog.Logger, apiURL string) *Client {
 	return &Client{
 		log:    log,
 		client: &http.Client{},
+		apiURL: apiURL,
 	}
 }
 
 type LyricsResponse struct {
-	Lyrics string `json:"track"`
+	Lyrics string `json:"lyrics"`
 	Error  string `json:"error"`
 }
 
@@ -46,7 +44,7 @@ func (c *Client) Lyrics(ctx context.Context, artist, title string) ([]string, er
 	ctx, cancel := context.WithTimeout(ctx, apiClient.RequestTimeout)
 	defer cancel()
 
-	apiURL, err := url.JoinPath(apiBaseURL, artist, title)
+	apiURL, err := url.JoinPath(c.apiURL, artist, title)
 	if err != nil {
 		return nil, err
 	}
@@ -79,10 +77,14 @@ func (c *Client) doAPIRequest(req *http.Request) (*LyricsResponse, error) {
 	}
 	defer resp.Body.Close()
 
+	c.log.Debug("api response status", slog.String("status", resp.Status))
+
 	var result LyricsResponse
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 		return nil, err
 	}
+
+	c.log.Debug("decoded api response", slog.Any("response", result))
 
 	if result.Lyrics == "" {
 		return nil, track.ErrLyricsNotFound
