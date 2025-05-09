@@ -16,14 +16,17 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 
 	_ "lyrics-library/docs"
+	authGRPC "lyrics-library/internal/client/grpc/auth"
 	"lyrics-library/internal/client/http/track/lyricsovh"
 	"lyrics-library/internal/client/http/track/yandex"
 	"lyrics-library/internal/config"
 	"lyrics-library/internal/lib/logger/sl"
 	"lyrics-library/internal/lib/logger/slogpretty"
+	authService "lyrics-library/internal/service/auth"
 	"lyrics-library/internal/service/track"
 	"lyrics-library/internal/storage/postgres"
 	"lyrics-library/internal/storage/redis"
+	"lyrics-library/internal/transport/handler/auth/register"
 	"lyrics-library/internal/transport/handler/track/create"
 	del "lyrics-library/internal/transport/handler/track/delete"
 	"lyrics-library/internal/transport/handler/track/read"
@@ -40,7 +43,7 @@ const (
 
 // @title Lyrics Library API
 // @version 1.0
-// @description API for getting song track with translation
+// @description API for getting song lyrics with translation by artist and title
 // @host localhost:8080
 // @BasePath /
 // @schemes http
@@ -70,7 +73,7 @@ func main() {
 
 	log.Debug("connecting to redis", slog.String("host", redisHost))
 
-	redisCache, err := redis.New(redisHost, cfg.Redis.Password)
+	cache, err := redis.New(redisHost, cfg.Redis.Password)
 	if err != nil {
 		panic(err)
 	}
@@ -81,14 +84,19 @@ func main() {
 		cfg.TranslatorAPI.URL,
 		cfg.TranslatorAPI.TargetLang,
 	)
+	authClient, err := authGRPC.New(log, cfg)
+	if err != nil {
+		panic(err)
+	}
 
 	trackService := track.New(
 		log,
 		lyricsClient,
 		translateClient,
 		storage,
-		redisCache,
+		cache,
 	)
+	auth := authService.New(log, authClient)
 
 	g := gin.New()
 
@@ -97,6 +105,11 @@ func main() {
 	g.Use(mwLogger.New(log))
 
 	g.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+
+	authGroup := g.Group("/auth")
+	{
+		authGroup.POST("/register", register.New(ctx, log, auth))
+	}
 
 	lyricsGroup := g.Group("/lyrics")
 	{
@@ -141,7 +154,7 @@ func main() {
 		log.Error("failed to close storage", sl.Err(err))
 	}
 
-	if err := redisCache.Close(shutdownCtx); err != nil {
+	if err := cache.Close(shutdownCtx); err != nil {
 		log.Error("failed to close redis", sl.Err(err))
 	}
 

@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 
@@ -11,9 +12,14 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/status"
 
 	"lyrics-library/internal/client"
 	"lyrics-library/internal/config"
+)
+
+var (
+	ErrUserAlreadyExists = errors.New("user already exists")
 )
 
 type Client struct {
@@ -41,7 +47,7 @@ func New(
 
 	log.Debug("Auth service address:", slog.String("address", addr))
 
-	cc, err := grpc.NewClient(clientAddress(cfg),
+	cc, err := grpc.NewClient(addr,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithChainUnaryInterceptor(
 			grpclog.UnaryClientInterceptor(InterceptorLogger(*log), logOpts...),
@@ -57,6 +63,25 @@ func New(
 	}, nil
 }
 
+func (c *Client) Register(ctx context.Context, email, password string) error {
+	const op = "client.grpc.auth.Register"
+
+	_, err := c.api.Register(ctx, &ssov1.RegisterRequest{
+		Email:    email,
+		Password: password,
+	})
+	if err != nil {
+		st, ok := status.FromError(err)
+		if ok && st.Code() == codes.AlreadyExists {
+			return fmt.Errorf("%s: %w", op, ErrUserAlreadyExists)
+		}
+
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	return nil
+}
+
 func InterceptorLogger(l slog.Logger) grpclog.Logger {
 	return grpclog.LoggerFunc(func(ctx context.Context, lvl grpclog.Level, msg string, fields ...any) {
 		l.Log(ctx, slog.Level(lvl), msg, fields...)
@@ -64,5 +89,5 @@ func InterceptorLogger(l slog.Logger) grpclog.Logger {
 }
 
 func clientAddress(cfg *config.Config) string {
-	return cfg.Auth.Host + ":" + cfg.Auth.Port
+	return fmt.Sprintf("%s:%s", cfg.Auth.Host, cfg.Auth.Port)
 }

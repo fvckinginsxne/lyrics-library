@@ -58,7 +58,7 @@ func TestDeleteHandler(t *testing.T) {
 					Return(track.ErrInvalidUUID)
 			},
 			expectedStatus: http.StatusBadRequest,
-			expectedBody:   `{"error":"invalid uuid"}`,
+			expectedBody:   `{"error":"track not found"}`,
 		},
 		{
 			name:      "internal server error",
@@ -100,7 +100,7 @@ func TestDeleteHandler(t *testing.T) {
 			router.DELETE("/lyrics/:uuid", handler)
 
 			w := httptest.NewRecorder()
-			req, _ := http.NewRequest(http.MethodDelete, "/track/"+tt.uuidParam, nil)
+			req, _ := http.NewRequest(http.MethodDelete, "/lyrics/"+tt.uuidParam, nil)
 			router.ServeHTTP(w, req)
 
 			assert.Equal(t, tt.expectedStatus, w.Code)

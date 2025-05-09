@@ -16,11 +16,11 @@ type TrackDeleter interface {
 	Delete(ctx context.Context, uuid string) error
 }
 
-// @Summary Delete song track
-// @Description Delete song track by uuid
+// @Summary Delete song lyrics
+// @Description Delete song lyrics by uuid
 // @Tags track
 // @Param uuid path string true "Track UUID" example(e434dc13-ada5-4bde-b695-d97014dadebc)
-// @Success 204 "Track deleted successfully"
+// @Success 204 "Lyrics deleted successfully"
 // @Failure 400 {object} dto.ErrorResponse "Invalid request"
 // @Failure 500 {object} dto.ErrorResponse "Internal server error"
 // @Router /track/{uuid} [delete]
@@ -29,7 +29,7 @@ func New(
 	log *slog.Logger,
 	trackDeleter TrackDeleter,
 ) gin.HandlerFunc {
-	const op = "handlers.song.delete.New"
+	const op = "handler.track.delete.New"
 
 	return func(c *gin.Context) {
 		log = log.With("op", op)

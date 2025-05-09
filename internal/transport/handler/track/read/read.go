@@ -20,13 +20,13 @@ type ArtistTracksProvider interface {
 	ArtistTracks(ctx context.Context, artist string) ([]*dto.TrackResponse, error)
 }
 
-// @Summary Get song track or artist tracks
-// @Description If 'title' is provided, returns track for the specific song.
+// @Summary Get song lyrics or artist tracks
+// @Description If 'title' is provided, returns lyrics for the specific song.
 // @Description Otherwise, returns a list of all songs by the artist (without track).
 // @Tags track
 // @Param artist query string true "Artist name" example("Juice WRLD")
 // @Param title query string false "Song title (optional)" example("Legends")
-// @Success 200 {object} dto.TrackResponse "Returns song (object) or artist tracks (array)"
+// @Success 200 {object} dto.TrackResponse "Returns lyrics (object) or artist tracks (array)"
 // @Failure 400 {object} dto.ErrorResponse "Invalid request"
 // @Failure 500 {object} dto.ErrorResponse "Internal server error"
 // @Router /track [get]
@@ -36,7 +36,7 @@ func New(
 	trackProvider TrackProvider,
 	artistTracksProvider ArtistTracksProvider,
 ) gin.HandlerFunc {
-	const op = "handlers.song.read.New"
+	const op = "handler.track.read.New"
 
 	return func(c *gin.Context) {
 		log = log.With(slog.String("op", op))

@@ -15,13 +15,59 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/auth/register": {
+            "post": {
+                "description": "Register a new user with email and password",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Register a new user",
+                "parameters": [
+                    {
+                        "description": "Registration data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.RegisterRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "User created successfully"
+                    },
+                    "400": {
+                        "description": "Invalid request data",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "User already exists",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/track": {
             "get": {
-                "description": "If 'title' is provided, returns track for the specific song.\nOtherwise, returns a list of all songs by the artist (without track).",
+                "description": "If 'title' is provided, returns lyrics for the specific song.\nOtherwise, returns a list of all songs by the artist (without track).",
                 "tags": [
                     "track"
                 ],
-                "summary": "Get song track or artist tracks",
+                "summary": "Get song lyrics or artist tracks",
                 "parameters": [
                     {
                         "type": "string",
@@ -41,7 +87,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Returns song (object) or artist tracks (array)",
+                        "description": "Returns lyrics (object) or artist tracks (array)",
                         "schema": {
                             "$ref": "#/definitions/dto.TrackResponse"
                         }
@@ -61,7 +107,7 @@ const docTemplate = `{
                 }
             },
             "post": {
-                "description": "Saves track and translation for a given artist and song title",
+                "description": "Save lyrics and translation for a given artist and song title",
                 "consumes": [
                     "application/json"
                 ],
@@ -71,7 +117,7 @@ const docTemplate = `{
                 "tags": [
                     "track"
                 ],
-                "summary": "Save new track with translation",
+                "summary": "Save a new track with translation",
                 "parameters": [
                     {
                         "description": "Lyrics request data",
@@ -107,11 +153,11 @@ const docTemplate = `{
         },
         "/track/{uuid}": {
             "delete": {
-                "description": "Delete song track by uuid",
+                "description": "Delete song lyrics by uuid",
                 "tags": [
                     "track"
                 ],
-                "summary": "Delete song track",
+                "summary": "Delete song lyrics",
                 "parameters": [
                     {
                         "type": "string",
@@ -124,7 +170,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "204": {
-                        "description": "Track deleted successfully"
+                        "description": "Lyrics deleted successfully"
                     },
                     "400": {
                         "description": "Invalid request",
@@ -165,6 +211,23 @@ const docTemplate = `{
             "properties": {
                 "error": {
                     "type": "string"
+                }
+            }
+        },
+        "dto.RegisterRequest": {
+            "type": "object",
+            "required": [
+                "email",
+                "password"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string",
+                    "example": "test@test.com"
+                },
+                "password": {
+                    "type": "string",
+                    "example": "matveyisgoat123"
                 }
             }
         },
@@ -209,7 +272,7 @@ var SwaggerInfo = &swag.Spec{
 	BasePath:         "/",
 	Schemes:          []string{"http"},
 	Title:            "Lyrics Library API",
-	Description:      "API for getting song track with translation",
+	Description:      "API for getting song lyrics with translation by artist and title",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

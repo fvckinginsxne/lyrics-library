@@ -14,20 +14,20 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
-	"lyrics-library/internal/domain/model"
 	trackService "lyrics-library/internal/service/track"
+	"lyrics-library/internal/transport/dto"
 )
 
 type MockTrackSaver struct {
 	mock.Mock
 }
 
-func (m *MockTrackSaver) Save(ctx context.Context, artist, title string) (*model.Track, error) {
+func (m *MockTrackSaver) Save(ctx context.Context, artist, title string) (*dto.TrackResponse, error) {
 	args := m.Called(ctx, artist, title)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
-	return args.Get(0).(*model.Track), args.Error(1)
+	return args.Get(0).(*dto.TrackResponse), args.Error(1)
 }
 
 func TestSaveHandler(t *testing.T) {
@@ -43,7 +43,7 @@ func TestSaveHandler(t *testing.T) {
 			requestBody: `{"artist": "Juice WRLD", "title": "Lucid Dreams"}`,
 			mockSetup: func(m *MockTrackSaver) {
 				m.On("Save", mock.Anything, "Juice WRLD", "Lucid Dreams").
-					Return(&model.Track{
+					Return(&dto.TrackResponse{
 						Artist:      "Juice WRLD",
 						Title:       "Lucid Dreams",
 						Lyrics:      []string{"I still see your shadows in my room..."},
@@ -51,7 +51,7 @@ func TestSaveHandler(t *testing.T) {
 					}, nil)
 			},
 			expectedStatus: http.StatusCreated,
-			expectedBody:   `{"artist":"Juice WRLD","title":"Lucid Dreams","track":["I still see your shadows in my room..."],"translation":["Я все еще вижу твою тени с моей комнате..."]}`,
+			expectedBody:   `{"artist":"Juice WRLD","title":"Lucid Dreams","lyrics":["I still see your shadows in my room..."],"translation":["Я все еще вижу твою тени с моей комнате..."]}`,
 		},
 		{
 			name:           "empty request body",
@@ -74,7 +74,7 @@ func TestSaveHandler(t *testing.T) {
 				m.On("Save", mock.Anything, "Juice WRLD", "Lucid Dreams").
 					Return(nil, trackService.ErrLyricsNotFound)
 			},
-			expectedStatus: http.StatusNotFound,
+			expectedStatus: http.StatusBadRequest,
 			expectedBody:   `{"error":"track not found"}`,
 		},
 		{
@@ -84,8 +84,8 @@ func TestSaveHandler(t *testing.T) {
 				m.On("Save", mock.Anything, "Juice WRLD", "Lucid Dreams").
 					Return(nil, trackService.ErrFailedTranslateLyrics)
 			},
-			expectedStatus: http.StatusInternalServerError,
-			expectedBody:   `{"error":"failed translate track"}`,
+			expectedStatus: http.StatusBadRequest,
+			expectedBody:   `{"error":"failed translate lyrics"}`,
 		},
 		{
 			name:        "internal server error",

@@ -13,32 +13,32 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
-	"lyrics-library/internal/domain/model"
 	trackService "lyrics-library/internal/service/track"
+	"lyrics-library/internal/transport/dto"
 )
 
 type MockTrackProvider struct {
 	mock.Mock
 }
 
-func (m *MockTrackProvider) Track(ctx context.Context, artist, title string) (*model.Track, error) {
+func (m *MockTrackProvider) Track(ctx context.Context, artist, title string) (*dto.TrackResponse, error) {
 	args := m.Called(ctx, artist, title)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
-	return args.Get(0).(*model.Track), args.Error(1)
+	return args.Get(0).(*dto.TrackResponse), args.Error(1)
 }
 
 type MockArtistTracksProvider struct {
 	mock.Mock
 }
 
-func (m *MockArtistTracksProvider) ArtistTracks(ctx context.Context, artist string) ([]*model.Track, error) {
+func (m *MockArtistTracksProvider) ArtistTracks(ctx context.Context, artist string) ([]*dto.TrackResponse, error) {
 	args := m.Called(ctx, artist)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
-	return args.Get(0).([]*model.Track), args.Error(1)
+	return args.Get(0).([]*dto.TrackResponse), args.Error(1)
 }
 
 func TestGetHandler(t *testing.T) {
@@ -55,7 +55,7 @@ func TestGetHandler(t *testing.T) {
 			queryParams: map[string]string{"artist": "Juice WRLD", "title": "Lucid Dreams"},
 			mockTrackProvider: func(m *MockTrackProvider) {
 				m.On("Track", mock.Anything, "Juice WRLD", "Lucid Dreams").
-					Return(&model.Track{
+					Return(&dto.TrackResponse{
 						Artist:      "Juice WRLD",
 						Title:       "Lucid Dreams",
 						Lyrics:      []string{"I still see your shadows in my room..."},
@@ -64,7 +64,7 @@ func TestGetHandler(t *testing.T) {
 			},
 			mockTracksProvider: func(m *MockArtistTracksProvider) {},
 			expectedStatus:     http.StatusOK,
-			expectedBody:       `{"artist":"Juice WRLD","title":"Lucid Dreams","track":["I still see your shadows in my room..."],"translation":["Я все еще вижу твою тени с моей комнате..."]}`,
+			expectedBody:       `{"artist":"Juice WRLD","title":"Lucid Dreams","lyrics":["I still see your shadows in my room..."],"translation":["Я все еще вижу твою тени с моей комнате..."]}`,
 		},
 		{
 			name:        "track not found",
@@ -74,7 +74,7 @@ func TestGetHandler(t *testing.T) {
 					Return(nil, trackService.ErrTrackNotFound)
 			},
 			mockTracksProvider: func(m *MockArtistTracksProvider) {},
-			expectedStatus:     http.StatusNotFound,
+			expectedStatus:     http.StatusBadRequest,
 			expectedBody:       `{"error":"track not found"}`,
 		},
 		{
@@ -83,7 +83,7 @@ func TestGetHandler(t *testing.T) {
 			mockTrackProvider: func(m *MockTrackProvider) {},
 			mockTracksProvider: func(m *MockArtistTracksProvider) {
 				m.On("ArtistTracks", mock.Anything, "Juice WRLD").
-					Return([]*model.Track{
+					Return([]*dto.TrackResponse{
 						{
 							Artist:      "Juice WRLD",
 							Title:       "Lucid Dreams",
@@ -99,7 +99,7 @@ func TestGetHandler(t *testing.T) {
 					}, nil)
 			},
 			expectedStatus: http.StatusOK,
-			expectedBody:   `[{"artist":"Juice WRLD","title":"Lucid Dreams","track":["..."],"translation":["..."]},{"artist":"Juice WRLD","title":"All Girls Are The Same","track":["..."],"translation":["..."]}]`,
+			expectedBody:   `[{"artist":"Juice WRLD","title":"Lucid Dreams","lyrics":["..."],"translation":["..."]},{"artist":"Juice WRLD","title":"All Girls Are The Same","lyrics":["..."],"translation":["..."]}]`,
 		},
 		{
 			name:              "artist tracks not found",
@@ -109,7 +109,7 @@ func TestGetHandler(t *testing.T) {
 				m.On("ArtistTracks", mock.Anything, "Unknown Artist").
 					Return(nil, trackService.ErrArtistTracksNotFound)
 			},
-			expectedStatus: http.StatusNotFound,
+			expectedStatus: http.StatusBadRequest,
 			expectedBody:   `{"error":"artist tracks not found"}`,
 		},
 		{

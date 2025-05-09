@@ -18,8 +18,8 @@ type TrackSaver interface {
 	Save(ctx context.Context, artist, title string) (*dto.TrackResponse, error)
 }
 
-// @Summary Save new track with translation
-// @Description Saves track and translation for a given artist and song title
+// @Summary Save a new track with translation
+// @Description Save lyrics and translation for a given artist and song title
 // @Tags track
 // @Accept json
 // @Produce json
@@ -33,7 +33,7 @@ func New(
 	log *slog.Logger,
 	trackSaver TrackSaver,
 ) gin.HandlerFunc {
-	const op = "handlers.song.create.New"
+	const op = "handler.track.create.New"
 
 	return func(c *gin.Context) {
 

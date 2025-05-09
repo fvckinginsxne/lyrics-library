@@ -17,6 +17,18 @@ definitions:
       error:
         type: string
     type: object
+  dto.RegisterRequest:
+    properties:
+      email:
+        example: test@test.com
+        type: string
+      password:
+        example: matveyisgoat123
+        type: string
+    required:
+    - email
+    - password
+    type: object
   dto.TrackResponse:
     properties:
       artist:
@@ -41,14 +53,44 @@ definitions:
 host: localhost:8080
 info:
   contact: {}
-  description: API for getting song track with translation
+  description: API for getting song lyrics with translation by artist and title
   title: Lyrics Library API
   version: "1.0"
 paths:
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Register a new user with email and password
+      parameters:
+      - description: Registration data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.RegisterRequest'
+      responses:
+        "201":
+          description: User created successfully
+        "400":
+          description: Invalid request data
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "409":
+          description: User already exists
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Register a new user
+      tags:
+      - auth
   /track:
     get:
       description: |-
-        If 'title' is provided, returns track for the specific song.
+        If 'title' is provided, returns lyrics for the specific song.
         Otherwise, returns a list of all songs by the artist (without track).
       parameters:
       - description: Artist name
@@ -64,7 +106,7 @@ paths:
         type: string
       responses:
         "200":
-          description: Returns song (object) or artist tracks (array)
+          description: Returns lyrics (object) or artist tracks (array)
           schema:
             $ref: '#/definitions/dto.TrackResponse'
         "400":
@@ -75,13 +117,13 @@ paths:
           description: Internal server error
           schema:
             $ref: '#/definitions/dto.ErrorResponse'
-      summary: Get song track or artist tracks
+      summary: Get song lyrics or artist tracks
       tags:
       - track
     post:
       consumes:
       - application/json
-      description: Saves track and translation for a given artist and song title
+      description: Save lyrics and translation for a given artist and song title
       parameters:
       - description: Lyrics request data
         in: body
@@ -104,12 +146,12 @@ paths:
           description: Internal server error
           schema:
             $ref: '#/definitions/dto.ErrorResponse'
-      summary: Save new track with translation
+      summary: Save a new track with translation
       tags:
       - track
   /track/{uuid}:
     delete:
-      description: Delete song track by uuid
+      description: Delete song lyrics by uuid
       parameters:
       - description: Track UUID
         example: e434dc13-ada5-4bde-b695-d97014dadebc
@@ -119,7 +161,7 @@ paths:
         type: string
       responses:
         "204":
-          description: Track deleted successfully
+          description: Lyrics deleted successfully
         "400":
           description: Invalid request
           schema:
@@ -128,7 +170,7 @@ paths:
           description: Internal server error
           schema:
             $ref: '#/definitions/dto.ErrorResponse'
-      summary: Delete song track
+      summary: Delete song lyrics
       tags:
       - track
 schemes:
