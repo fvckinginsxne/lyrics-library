@@ -4,6 +4,7 @@ RESTful microservice in Go for receiving song lyrics with Russian translation.
 
 ## Features
 - Save new lyrics with translation by artist and title
+- Integration via gRPC with [auth](https://github.com/fvckinginsxne/auth-service) service 
 - Get song lyrics by artist and track title
 - Delete lyrics by UUID
 - Automatic translation into Russian
@@ -44,6 +45,6 @@ localhost:8080/swagger/index.html
 
 ## TODO 
 - [x] Tests
-- [ ] Add integration with auth service using gRPC  
+- [x] Add integration with auth service using gRPC  
 - [ ] Make frontend
 - [ ] Deploy fullstack app on server

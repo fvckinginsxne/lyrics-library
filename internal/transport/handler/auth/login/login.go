@@ -1,4 +1,4 @@
-package register
+package login
 
 import (
 	"context"
@@ -15,29 +15,30 @@ import (
 	"lyrics-library/internal/transport/dto"
 )
 
-type UserRegistrar interface {
-	Register(ctx context.Context, credentials *dto.CredentialsRequest) error
+type UserLogin interface {
+	Login(ctx context.Context, credentials *dto.CredentialsRequest) (string, error)
 }
 
-// @Summary Register a new user
-// @Description Register a new user with email and password
+// @Summary Login a user
+// @Description Login a user with email and password
 // @Tags auth
 // @Accept json
-// @Param request body dto.CredentialsRequest true "Registration data"
-// @Success 201 "User created successfully"
+// @Produce json
+// @Param request body dto.CredentialsRequest true "Data to login"
+// @Success 200 {object} dto.LoginResponse "User logged in successfully"
 // @Failure 400 {object} dto.ErrorResponse "Invalid request data"
-// @Failure 409 {object} dto.ErrorResponse "User already exists"
+// @Failure 401 {object} dto.ErrorResponse "Invalid credentials"
 // @Failure 500 {object} dto.ErrorResponse "Internal server error"
-// @Router /auth/register [post]
+// @Router /auth/login [post]
 func New(
 	ctx context.Context,
 	log *slog.Logger,
-	userRegistrar UserRegistrar,
+	userLogin UserLogin,
 ) gin.HandlerFunc {
-	const op = "handler.auth.register.New"
+	const op = "handler.auth.login.New"
 
 	return func(c *gin.Context) {
-		log := log.With(slog.String("op", op))
+		log = log.With(slog.String("op", op))
 
 		var req dto.CredentialsRequest
 		if err := c.ShouldBindJSON(&req); err != nil {
@@ -62,20 +63,21 @@ func New(
 
 		log.Debug("request body decoded", slog.Any("request", req))
 
-		if err := userRegistrar.Register(ctx, &req); err != nil {
-			if errors.Is(err, authService.ErrUserAlreadyExists) {
-				log.Warn("user already exists")
+		token, err := userLogin.Login(ctx, &req)
+		if err != nil {
+			if errors.Is(err, authService.ErrInvalidCredentials) {
+				log.Warn("invalid credentials", sl.Err(err))
 
-				c.JSON(http.StatusConflict, dto.ErrorResponse{Error: "user already exists"})
+				c.JSON(http.StatusUnauthorized, dto.ErrorResponse{Error: "invalid credentials"})
 				return
 			}
 
-			log.Error("failed to register user", sl.Err(err))
+			log.Error("failed to login", sl.Err(err))
 
 			c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Error: "internal server error"})
 			return
 		}
 
-		c.Status(http.StatusCreated)
+		c.JSON(http.StatusOK, dto.LoginResponse{Token: token})
 	}
 }

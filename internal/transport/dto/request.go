@@ -5,7 +5,7 @@ type CreateRequest struct {
 	Title  string `json:"title" binding:"required" example:"Lucid Dreams"`
 }
 
-type RegisterRequest struct {
+type CredentialsRequest struct {
 	Email    string `json:"email" binding:"required" validate:"email" example:"test@test.com"`
 	Password string `json:"password" binding:"required" example:"matveyisgoat123"`
 }

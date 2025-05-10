@@ -19,7 +19,8 @@ import (
 )
 
 var (
-	ErrUserAlreadyExists = errors.New("user already exists")
+	ErrUserAlreadyExists  = errors.New("user already exists")
+	ErrInvalidCredentials = errors.New("invalid credentials")
 )
 
 type Client struct {
@@ -80,6 +81,25 @@ func (c *Client) Register(ctx context.Context, email, password string) error {
 	}
 
 	return nil
+}
+
+func (c *Client) Login(ctx context.Context, email, password string) (string, error) {
+	const op = "client.grpc.auth.Login"
+
+	resp, err := c.api.Login(ctx, &ssov1.LoginRequest{
+		Email:    email,
+		Password: password,
+	})
+	if err != nil {
+		st, ok := status.FromError(err)
+		if ok && st.Code() == codes.InvalidArgument {
+			return "", fmt.Errorf("%s: %w", op, ErrInvalidCredentials)
+		}
+
+		return "", fmt.Errorf("%s: %w", op, err)
+	}
+
+	return resp.Token, nil
 }
 
 func InterceptorLogger(l slog.Logger) grpclog.Logger {

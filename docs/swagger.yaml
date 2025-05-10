@@ -12,12 +12,7 @@ definitions:
     - artist
     - title
     type: object
-  dto.ErrorResponse:
-    properties:
-      error:
-        type: string
-    type: object
-  dto.RegisterRequest:
+  dto.CredentialsRequest:
     properties:
       email:
         example: test@test.com
@@ -28,6 +23,16 @@ definitions:
     required:
     - email
     - password
+    type: object
+  dto.ErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+  dto.LoginResponse:
+    properties:
+      token:
+        type: string
     type: object
   dto.TrackResponse:
     properties:
@@ -57,6 +62,40 @@ info:
   title: Lyrics Library API
   version: "1.0"
 paths:
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Login user with email and password
+      parameters:
+      - description: Data to login
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CredentialsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User logged in successfully
+          schema:
+            $ref: '#/definitions/dto.LoginResponse'
+        "400":
+          description: Invalid request data
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Invalid credentials
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Login user
+      tags:
+      - auth
   /auth/register:
     post:
       consumes:
@@ -68,7 +107,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/dto.RegisterRequest'
+          $ref: '#/definitions/dto.CredentialsRequest'
       responses:
         "201":
           description: User created successfully

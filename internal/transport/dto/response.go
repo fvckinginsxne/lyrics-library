@@ -13,6 +13,10 @@ type TrackResponse struct {
 	Translation []string `json:"translation" example:"Я все еще вижу твои тени в моей комнате..."`
 }
 
+type LoginResponse struct {
+	Token string `json:"token"`
+}
+
 func ToTrackResponse(t *model.Track) *TrackResponse {
 	return &TrackResponse{
 		Artist:      t.Artist,

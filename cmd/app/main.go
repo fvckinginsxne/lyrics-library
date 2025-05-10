@@ -26,6 +26,7 @@ import (
 	"lyrics-library/internal/service/track"
 	"lyrics-library/internal/storage/postgres"
 	"lyrics-library/internal/storage/redis"
+	"lyrics-library/internal/transport/handler/auth/login"
 	"lyrics-library/internal/transport/handler/auth/register"
 	"lyrics-library/internal/transport/handler/track/create"
 	del "lyrics-library/internal/transport/handler/track/delete"
@@ -109,6 +110,7 @@ func main() {
 	authGroup := g.Group("/auth")
 	{
 		authGroup.POST("/register", register.New(ctx, log, auth))
+		authGroup.POST("/login", login.New(ctx, log, auth))
 	}
 
 	lyricsGroup := g.Group("/lyrics")
