@@ -1,0 +1,2 @@
+ALTER TABLE songs
+DROP COLUMN user_id;

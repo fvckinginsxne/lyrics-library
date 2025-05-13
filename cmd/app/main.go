@@ -31,6 +31,7 @@ import (
 	"lyrics-library/internal/transport/handler/track/create"
 	del "lyrics-library/internal/transport/handler/track/delete"
 	"lyrics-library/internal/transport/handler/track/read"
+	mwAuth "lyrics-library/internal/transport/middleware/auth"
 	healthChecker "lyrics-library/internal/transport/middleware/health-checker"
 	mwLogger "lyrics-library/internal/transport/middleware/logger"
 )
@@ -104,6 +105,7 @@ func main() {
 	g.Use(gin.Recovery())
 	g.Use(healthChecker.New(log, storage))
 	g.Use(mwLogger.New(log))
+	g.Use(mwAuth.New(log, authClient))
 
 	g.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 

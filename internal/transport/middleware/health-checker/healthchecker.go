@@ -11,6 +11,10 @@ import (
 	"lyrics-library/internal/lib/logger/sl"
 )
 
+const (
+	pdPingTimeout = time.Second * 2
+)
+
 type StorageHealthChecker interface {
 	Ping(ctx context.Context) error
 }
@@ -20,7 +24,7 @@ func New(
 	pgClient StorageHealthChecker,
 ) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		ctx, cancel := context.WithTimeout(c.Request.Context(), 2*time.Second)
+		ctx, cancel := context.WithTimeout(c.Request.Context(), pdPingTimeout)
 		defer cancel()
 
 		if err := pgClient.Ping(ctx); err != nil {

@@ -21,6 +21,7 @@ import (
 var (
 	ErrUserAlreadyExists  = errors.New("user already exists")
 	ErrInvalidCredentials = errors.New("invalid credentials")
+	ErrInvalidToken       = errors.New("invalid token")
 )
 
 type Client struct {
@@ -100,6 +101,22 @@ func (c *Client) Login(ctx context.Context, email, password string) (string, err
 	}
 
 	return resp.Token, nil
+}
+
+func (c *Client) ParseToken(ctx context.Context, token string) (int64, error) {
+	const op = "client.grpc.auth.ValidateToken"
+
+	resp, err := c.api.ParseToken(ctx, &ssov1.ParseTokenRequest{
+		Token: token,
+	})
+	if err != nil {
+		st, ok := status.FromError(err)
+		if ok && st.Code() == codes.InvalidArgument {
+			return 0, fmt.Errorf("%s: %w", op, ErrInvalidToken)
+		}
+	}
+
+	return resp.Uid, nil
 }
 
 func InterceptorLogger(l slog.Logger) grpclog.Logger {

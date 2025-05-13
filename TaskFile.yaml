@@ -1,7 +1,38 @@
 version: "3"
 
+dotenv: ['.env']
+
+vars:
+  DB_URL: "postgres://{{.DB_USER}}:{{.DB_PASSWORD}}@lyrics-postgres:5432/{{.DB_NAME}}?sslmode=disable"
+
 tasks:
   run:
     desc: "Run service"
     cmds:
       - go run ./cmd/app --config=.env
+
+  migrate-up:
+    desc: "Применить все миграции"
+    cmds:
+      - docker-compose run --rm migrate -path=./migrations -database={{.DB_URL}} up
+
+  migrate-down:
+    desc: "Откатить последнюю миграцию"
+    cmds:
+      - docker-compose run --rm migrate -path=./migrations -database={{.DB_URL}} down 1
+
+  migrate-force:
+    desc: "Принудительно установить версию миграции"
+    cmds:
+      - docker-compose run --rm migrate -path=./migrations -database={{.DB_URL}} force {{.VERSION}}
+
+  migrate-version:
+    desc: "Показать текущую версию"
+    cmds:
+      - docker-compose run --rm migrate -path=./migrations -database={{.DB_URL}} version
+
+  migrate-list:
+    desc: "Показать список миграций"
+    cmds:
+      - docker-compose run --rm migrate -path=./migrations -database={{.DB_URL}} -verbose
+

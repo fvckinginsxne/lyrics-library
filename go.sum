@@ -24,8 +24,8 @@ github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f h1:lO4WD4F/r
 github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f/go.mod h1:cuUVRXasLTGF7a8hSLbxyZXjz+1KgoB3wDUb6vlszIc=
 github.com/fatih/color v1.18.0 h1:S8gINlzdQ840/4pfAwic/ZE0djQEH3wM94VfqLTZcOM=
 github.com/fatih/color v1.18.0/go.mod h1:4FelSpRwEGDpQ12mAdzqdOukCy4u8WUtOY6lkT/6HfU=
-github.com/fvckinginsxne/protos v0.0.1 h1:RRaqX1OE4Jy2DB2Wr98UzylilMSX3c+jhRKc44OcZjo=
-github.com/fvckinginsxne/protos v0.0.1/go.mod h1:aphBj4vRrjmpn7+LvL4Gj8+CVl0jIzkDr2Ror3LVgUg=
+github.com/fvckinginsxne/protos v0.0.3 h1:+OcWZOnNir1yw24BeDih8OH+iCfucNocMWoa14reHro=
+github.com/fvckinginsxne/protos v0.0.3/go.mod h1:aphBj4vRrjmpn7+LvL4Gj8+CVl0jIzkDr2Ror3LVgUg=
 github.com/gabriel-vasile/mimetype v1.4.9 h1:5k+WDwEsD9eTLL8Tz3L0VnmVh9QxGjRmjBvAG7U/oYY=
 github.com/gabriel-vasile/mimetype v1.4.9/go.mod h1:WnSQhFKJuBlRyLiKohA/2DtIlPFAbguNaG7QCHcyGok=
 github.com/gin-contrib/gzip v0.0.6 h1:NjcunTcGAj5CO1gn4N8jHOSIeRFHIbn51z6K+xaN4d4=

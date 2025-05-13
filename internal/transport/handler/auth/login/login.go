@@ -6,6 +6,7 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
@@ -13,6 +14,10 @@ import (
 	"lyrics-library/internal/lib/logger/sl"
 	authService "lyrics-library/internal/service/auth"
 	"lyrics-library/internal/transport/dto"
+)
+
+const (
+	jwtMaxAge = 1 * time.Hour
 )
 
 type UserLogin interface {
@@ -77,6 +82,16 @@ func New(
 			c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Error: "internal server error"})
 			return
 		}
+
+		c.SetCookie(
+			"jwt",
+			token,
+			int(jwtMaxAge.Seconds()),
+			"/",
+			"localhost",
+			false,
+			true,
+		)
 
 		c.JSON(http.StatusOK, dto.LoginResponse{Token: token})
 	}

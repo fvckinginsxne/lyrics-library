@@ -47,4 +47,4 @@ localhost:8080/swagger/index.html
 - [x] Tests
 - [x] Add integration with auth service using gRPC  
 - [ ] Make frontend
-- [ ] Deploy fullstack app on server
+- [ ] Deploy app on server
